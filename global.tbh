@@ -26,7 +26,8 @@ include "dns\trunk\dns.tbh"
 
 declare sub init()
 declare function upload_file() as ok_ng
-declare sub remove_HTML_headers(sock_number as string)
+declare sub remove_HTML_headers(sock_number as string, byref html as string)
+declare function get_headers(sock_number as string, byref html as string) as string
 declare function remove_header_get_filename() as string
 declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
 declare sub set_LED(pattern as byte)

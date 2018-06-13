@@ -185,11 +185,13 @@ location=project
 path=dns_request.tbs
 type=basic
 format=65001
+condition=
 locked=no
 location=project
 [file24]
 path=html_helper.tbs
 type=basic
 format=65001
+condition=
 locked=no
 location=project

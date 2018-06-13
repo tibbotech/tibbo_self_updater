@@ -49,9 +49,7 @@ sub callback_dns_ok()
 
 	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", PL_SOCK_INTERFACE_WLN)
 
-
 end sub
-
 
 sub send_request(request as string, interface as pl_sock_interfaces) 
 
@@ -70,8 +68,6 @@ sub send_request(request as string, interface as pl_sock_interfaces)
 
 end sub
 
-
-
 sub on_sock_data_arrival()
 
 	wln_proc_data()
@@ -79,7 +75,9 @@ sub on_sock_data_arrival()
 	dns_proc_data()
 	
 	if dns_started=true and sock.num=request_socket and sock.statesimple=PL_SSTS_EST then
-		remove_HTML_headers(request_socket)
+		s=sock.peekdata(255)
+		get_headers(request_socket,s)
+		'remove_HTML_headers(request_socket, s)
 	end if
 
 end sub
