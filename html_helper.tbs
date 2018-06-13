@@ -1,0 +1,43 @@
+include "global.tbh"
+
+'Removes all HTML headers.
+
+sub remove_HTML_headers(sock_number as string)
+	
+	dim startp as byte
+	dim s as string
+	
+	while sock.rxlen>0	
+		s=sock.peekdata(255)
+		startp=instr(1,s,"\x0d\x0a\x0d\x0a", 1)
+		if startp=0 then
+			sock.getdata(230)
+		else 
+			sock.getdata(startp+3)
+		end if
+	wend
+		
+end sub
+
+function getHeader(sock_number as string, byref header as string) as 
+	
+	dim startp as byte
+	dim s as string
+	
+	while sock.rxlen>0	
+		s=sock.peekdata(255)
+		startp=instr(1,s,"\x0d\x0a\x0d\x0a", 1)
+		if startp=0 then
+			sock.getdata(230)
+		else 
+			sock.getdata(startp+3)
+		end if
+	wend
+		
+
+
+	getHeader=
+
+
+	
+end function

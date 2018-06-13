@@ -1,0 +1,38 @@
+include "global.tbh"
+include "upgrade.tbh"
+
+sub on_sys_init()
+	
+	init()
+	DHCP_DNS_init(PL_SOCK_INTERFACE_WLN)
+	
+end sub
+
+
+'Callback when the file type is read to let app know what will be updated.  
+
+sub on_firmware_update_start(byref current_fw_upg_state as pl_upg_state_t) 
+	sys.debugprint("Uploaded started")
+end sub
+
+sub on_firmware_update_data_received(byref current_fw_upg_state as pl_upg_state_t) 
+
+end sub
+
+'Callback when data has been written to flash. 
+sub on_firmware_update_percent_change(byref current_fw_upg_state as pl_upg_state_t) 
+
+end sub
+
+'Callback when all files have been downloaded. 
+sub on_firmware_update_file_complete(byref current_fw_upg_state as pl_upg_state_t)		
+	sys.debugprint("File completed")
+end sub
+
+'Callback when all files have been downloaded. 
+sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
+
+
+
+end sub
+

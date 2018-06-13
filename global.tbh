@@ -1,0 +1,41 @@
+#define DHCP_DEBUG_PRINT 1 
+#define DNS_DEBUG_PRINT 1 
+#define STG_DEBUG_PRINT 1 
+
+'Wi-Fi setup
+
+#define WLN_WPA 1
+#define WLN_AVAILABLE 1
+#define WLN_DEBUG_PRINT 1
+#define WLN_CLK PL_IO_NUM_53
+#define WLN_CS PL_IO_NUM_49
+#define WLN_DI PL_IO_NUM_52
+#define WLN_DO PL_IO_NUM_50
+#define WLN_RST PL_IO_NUM_51
+
+'Libraries
+
+include "sock\trunk\sock.tbh"
+include "settings\trunk\settings.tbh" 'this lib is necessary to save pre-shared master key
+includepp "settings.xtxt"
+include "wln\trunk\wln.tbh"
+include "dhcp\trunk\dhcp.tbh"
+include "dns\trunk\dns.tbh"
+
+'Functions
+
+declare sub init()
+declare function upload_file() as ok_ng
+declare sub remove_HTML_headers(sock_number as string)
+declare function remove_header_get_filename() as string
+declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
+declare sub set_LED(pattern as byte)
+
+const DHCP_FAIL_LIMIT=1 'max number of DHCP retry "batches"
+const ALT_NET_IP="192.168.1.40"
+const ALT_NET_GATEWAY_IP="192.168.1.1"
+const ALT_NET_NETMASK="255.255.255.0"
+const ALT_WLN_IP="192.168.1.41"
+const ALT_WLN_GATEWAY_IP="192.168.1.1"
+const ALT_WLN_NETMASK="255.255.255.0"
+

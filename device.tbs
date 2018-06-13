@@ -1,0 +1,245 @@
+include "global.tbh"
+include "upgrade.tbh"
+dim wln_dhcp_fail_ctr as byte 
+
+sub init()
+
+	stg_start()
+	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
+
+	dim f as byte
+
+	for f=8 to 15
+		sock.num=f
+		sock.txbuffrq(4)
+		sock.varbuffrq(4)
+		sock.redir(PL_REDIR_SOCK0 + sock.num)
+		sock.targetinterface=PL_SOCK_INTERFACE_WLN
+		sock.protocol=PL_SOCK_PROTOCOL_TCP
+		sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
+'		sock.allowedinterfaces="WLN"
+		sock.allowedinterfaces="NET,WLN"
+		sock.httpportlist="80"
+	next f
+	
+	sys.buffalloc()
+
+	if connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)<>WLN_STATUS_OK then
+		sys.halt
+	end if	
+	
+'	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
+	
+	fd.formatj((fd.availableflashspace/4)*3,10,100)
+	fd.mount
+	
+	io.num=PL_IO_NUM_46
+	io.enabled=YES
+	io.num=PL_IO_NUM_47
+	io.enabled=YES
+	io.num=PL_IO_NUM_48
+	io.enabled=YES
+
+end sub
+
+
+'Connects to the Wi-Fi Access Point
+
+function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
+
+	dim pmk as string(32)
+	wln_init()
+	wln.band= WIFI_PHY_11BG_MIXED
+	#if WLN_WPA
+		if wln.getmoduletype=PL_WLN_MODULE_TYPE_GA1000 then
+			if security_mode=WLN_SECURITY_MODE_WPA1 or security_mode=WLN_SECURITY_MODE_WPA2 then 
+				if stg_get("APN",0)<>ap_name or stg_get("PW",0)<>key or stg_sg("PMK",0,pmk,EN_STG_GET)<>EN_STG_STATUS_OK then
+					'recalculate the key
+					pmk=wln_wpa_mkey_get(key,ap_name)
+					stg_set("PMK",0,pmk)
+					stg_set("APN",0,ap_name)
+					stg_set("PW",0,key)
+				else
+					pmk=stg_get("PMK",0) 'the key stays the same
+				end if
+			end if
+		else
+			pmk=key
+		end if
+	#else
+		pmk=key
+	#endif
+
+	#if SRC_LIB_VER < &h020003
+		connect_to_ap=wln_start(ap_name,security_mode,pmk,domain)
+	#endif
+
+	#if SRC_LIB_VER >= &h020003
+		connect_to_ap=wln_start(ap_name,security_mode,pmk,domain,YES,PL_WLN_ASCAN_INFRASTRUCTURE)
+	#endif
+	
+end function
+sub callback_dhcp_ok(renew as no_yes, interface as pl_sock_interfaces, byref ip as string, byref gateway_ip as string, byref netmask as string, lease_time as dword)
+	
+	if interface=PL_SOCK_INTERFACE_NET then
+		if renew=YES and net.ip<>ip then
+			sys.reboot
+		end if
+		if net.ip<>ip then
+			net.ip=ip
+			net.gatewayip=gateway_ip
+			net.netmask=netmask
+		end if
+		dns_connect(PL_SOCK_INTERFACE_NET, "8.8.4.4", 0)
+	end if
+	
+	if interface=PL_SOCK_INTERFACE_WLN then
+		if renew=YES and wln.ip<>ip then
+			sys.reboot
+		end if
+		if wln.ip<>ip then
+			wln.ip=ip
+			wln.gatewayip=gateway_ip
+			wln.netmask=netmask
+		end if
+		dns_connect(PL_SOCK_INTERFACE_WLN, "8.8.4.4", 0)
+	end if
+				
+end sub
+sub callback_dhcp_failure(interface as pl_sock_interfaces,failure_code as en_dhcp_status_codes)
+
+	if interface=PL_SOCK_INTERFACE_WLN then
+		if wln_dhcp_fail_ctr>=DHCP_FAIL_LIMIT then
+			wln.ip=ALT_WLN_IP
+			wln.gatewayip=ALT_WLN_GATEWAY_IP
+			wln.netmask=ALT_WLN_NETMASK
+			dhcp_stop(PL_SOCK_INTERFACE_WLN)
+		else
+			wln_dhcp_fail_ctr=wln_dhcp_fail_ctr+1
+		end if
+	end if
+	
+end sub
+
+
+sub on_sys_timer()
+	
+	wln_proc_timer()
+	dhcp_proc_timer()
+	dns_proc_timer()
+	
+end sub
+
+sub on_ser_data_arrival()
+	
+	if upload_started=true then
+		device_firmware_upload_update()
+	end if
+		
+end sub
+
+dim pat1 as byte = &b10000
+sub on_bt_data_arrival()
+			
+	if upload_started=true then
+		device_firmware_upload_update()
+	end if
+	
+	set_LED(pat1)
+	pat1 = pat1 shr 1
+	if pat1=0 then 
+		pat1 =  &b10000
+	end if
+end sub
+
+
+sub on_wln_task_complete(completed_task as pl_wln_tasks)
+		
+	wln_proc_task_complete(completed_task)
+
+end sub
+
+sub on_wln_event(wln_event as pl_wln_events)
+
+	wln_proc_event(wln_event)
+
+end sub
+
+sub callback_wln_ok()
+	
+	dhcp_start(PL_SOCK_INTERFACE_WLN,"","")
+	
+end sub
+
+sub callback_wln_failure(wln_state as en_wln_status_codes)
+	
+	sys.debugprint("oops")
+
+end sub
+
+sub set_LED(pattern as byte)
+
+	dim f,x as byte
+	dim s as string(8)
+	
+	s=mid(bin(pattern),3,8)
+	s=strgen(8-len(s),"0")+s	
+	
+	'make 5 clocks
+	io.num=PL_IO_NUM_47
+	for f=0 to 4
+		x=1-val(mid(s,f+4,1))
+		io.lineset(PL_IO_NUM_48,x)
+		io.state=LOW
+		io.state=HIGH
+	next f
+	
+end sub
+
+
+sub callback_dns_failure(status as en_dns_status_codes)
+	
+	sys.debugprint("DNS Failed \x0d\x0a")
+	
+end sub
+
+
+sub callback_wln_pre_buffrq(required_buff_pages as byte)
+end sub
+
+sub callback_wln_rescan_result(current_rssi as byte, scan_rssi as byte, different_ap as no_yes)
+end sub
+
+sub callback_wln_starting_association()
+end sub
+
+sub callback_wln_rescan_for_better_ap()
+end sub
+
+sub callback_wln_mkey_progress_update(progress as byte)
+end sub
+
+sub callback_stg_error(byref stg_name_or_num as string,index as byte,status as en_stg_status_codes)
+end sub
+
+sub callback_stg_pre_get(byref stg_name_or_num as string,index as byte,byref stg_value as string)
+end sub
+
+sub callback_stg_post_set(byref stg_name_or_num as string, index as byte,byref stg_value as string)
+end sub
+
+sub callback_dhcp_pre_clear_ip(interface as pl_sock_interfaces)
+end sub
+
+sub callback_dhcp_pre_buffrq(required_buff_pages as byte)
+end sub
+
+sub callback_dhcp_buff_released()
+end sub
+
+
+sub callback_dns_pre_buffrq(num_of_pages_required as byte)
+end sub
+
+sub callback_dns_buff_released()
+end sub

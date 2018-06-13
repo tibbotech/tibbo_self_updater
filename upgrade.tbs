@@ -1,0 +1,357 @@
+include "global.tbh"
+include "upgrade.tbh"
+
+dim upload_started as boolean = false
+dim current_fw_upg_state as pl_upg_state_t
+dim isBtConnected as boolean = false
+dim fw_total_remaining as dword
+
+sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
+	dim i as integer 
+ 
+	current_fw_upg_state.source  = source
+	current_fw_upg_state.source_num = number
+	current_fw_upg_state.state=PL_FW_UPG__INIT
+	current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_NONE
+	current_fw_upg_state.fw_numfiles  = 0	
+	for i = 0 TO MAX_NUM_FILE_UPG - 1 
+		current_fw_upg_state.fw_types(i) = 0
+		current_fw_upg_state.fw_lengths(i) = 0
+		current_fw_upg_state.fw_checksums(i) = 0
+	next i
+	current_fw_upg_state.fw_currentfile = 0
+	current_fw_upg_state.fw_total_percent = 0
+	current_fw_upg_state.fw_percent = 0
+	current_fw_upg_state.fw_remaining = 0 
+	current_fw_upg_state.fw_sector =  0
+	current_fw_upg_state.fw_page  = 0
+	current_fw_upg_state.fw_checksum =0 	
+	fw_total_remaining=0
+end sub
+
+sub device_firmware_download_init_ble()
+	dim s as string
+	dim mac as string
+	'IF GA10000 dont do this
+	'set the state to fai land set gail rteadon 
+	
+	
+	bt.rxclear()
+	bt.txclear()	
+	mac=bt.mac
+	s=DEVICE_NAME+mid(mac,9,2)+":"+mid(mac,11,2)
+	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
+	bt.name = s
+	bt.rxbuffrq(64)	 'Change this 64 to a define
+	sys.buffalloc
+	
+	if bt.poweredon<>YES then
+		bt.enable(yes)
+	end if
+
+	 
+	
+end sub
+
+sub device_firmware_download_init()
+select case current_fw_upg_state.source
+	case PL_FW_UPG_BLE:
+		device_firmware_download_init_ble()
+		current_fw_upg_state.state = PL_FW_READ_HEADER
+	case PL_FW_UPG_SOCK:		
+		current_fw_upg_state.state = PL_FW_READ_HEADER
+	case PL_FW_UPG_SER:
+		init_serial()
+		current_fw_upg_state.state = PL_FW_READ_HEADER
+	case else:
+		current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_SOURCE_UNKNOWN
+		current_fw_upg_state.state = PL_FW_UPG_FAIL
+		on_firmware_update_complete(current_fw_upg_state)
+end select
+
+end sub
+
+sub init_serial()
+
+	ser.enabled=NO
+	ser.mode=PL_SER_MODE_UART
+	ser.interface=PL_SER_SI_FULLDUPLEX
+	ser.baudrate=ser.div9600
+	ser.flowcontrol=ENABLED
+	ser.rtsmap=PL_IO_NUM_0
+	io.num=PL_IO_NUM_0
+	io.enabled=YES
+	ser.ctsmap=PL_IO_NUM_16_INT0
+	io.num=PL_IO_NUM_16_INT0
+	io.enabled=NO
+	ser.interchardelay=0
+	ser.parity=PL_SER_PR_NONE
+	ser.bits=PL_SER_BB_8
+	ser.txbuffrq(4)
+	ser.rxbuffrq(4)
+	sys.buffalloc()
+	ser.rxclear()
+	ser.txclear()
+	ser.enabled=YES
+	
+end sub
+
+function device_firmware_read_32_uint() as dword
+	dim l as byte(4)
+	dim s as string
+	select case current_fw_upg_state.source
+		case PL_FW_UPG_BLE:		   	
+			l=bt.getdata(4)
+			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
+		case PL_FW_UPG_SOCK:
+			sock.num=UPG_SOCK_NUM
+			s=sock.peekdata(255)
+			l=sock.getdata(4)
+			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
+		case PL_FW_UPG_SER:
+			ser.num=current_fw_upg_state.source_num
+			l=ser.getdata(4)
+			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
+		case else:
+			device_firmware_read_32_uint = 0			
+	end select
+end function
+
+function device_firmware_bytes_available() as dword
+	
+	select case current_fw_upg_state.source
+		case PL_FW_UPG_BLE:		   	
+			device_firmware_bytes_available = bt.rxlen							 
+		case PL_FW_UPG_SOCK:
+			sock.num=UPG_SOCK_NUM
+			device_firmware_bytes_available=sock.rxlen
+		case PL_FW_UPG_SER:
+			ser.num=current_fw_upg_state.source_num
+			device_firmware_bytes_available=ser.rxlen
+		case else:
+			device_firmware_bytes_available = 0
+	end select
+end function
+
+sub device_firmware_read_data(byref data as string, byref count as dword)
+	select case current_fw_upg_state.source
+		case PL_FW_UPG_BLE:		   	
+			data = bt.getdata(count)							 
+		case PL_FW_UPG_SOCK:
+			sock.num=UPG_SOCK_NUM
+			data = sock.getdata(count)	
+		case PL_FW_UPG_SER:
+			ser.num=current_fw_upg_state.source_num
+			data = ser.getdata(count)	
+		case else:
+			data = ""
+	end select
+end sub
+
+sub device_firmware_read_header()	
+	if device_firmware_bytes_available() >= 8 then	
+		current_fw_upg_state.fw_numfiles = device_firmware_read_32_uint()
+		current_fw_upg_state.fw_totalsize = device_firmware_read_32_uint()
+		fw_total_remaining = current_fw_upg_state.fw_totalsize
+		if current_fw_upg_state.fw_numfiles > 0 then
+			current_fw_upg_state.state = PL_FW_UPG_READ_FW_TYPE		
+		else 
+			current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_NUMFILES
+			current_fw_upg_state.state = PL_FW_UPG_FAIL
+			on_firmware_update_complete(current_fw_upg_state)
+		end if
+	end if
+end sub
+
+sub device_firmware_read_fw_type()
+	dim l as byte(4)
+	if device_firmware_bytes_available()  >= 4 then	
+		current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile) = device_firmware_read_32_uint()	
+		
+		select case current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
+		case WA2000_MON:
+			wln.setupgraderegion(PL_WLN_MON)
+		case WA2000_APP:			
+			wln.setupgraderegion(PL_WLN_FW)
+		case else:
+			
+		end select		
+		if current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile) <= WA3000_APP then
+			current_fw_upg_state.state = PL_FW_UPG_READ_LEN						
+		else 
+			current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_INVALID_FW_TYPE
+			current_fw_upg_state.state = PL_FW_UPG_FAIL
+			on_firmware_update_complete(current_fw_upg_state)
+		end if
+	end if
+end sub
+
+sub device_firmware_read_fw_length()
+	dim l as byte(4)
+	if device_firmware_bytes_available()  >= 4 then
+		current_fw_upg_state.fw_remaining = device_firmware_read_32_uint()	
+		if current_fw_upg_state.fw_remaining  > 0 then
+			current_fw_upg_state.fw_lengths(current_fw_upg_state.fw_currentfile) = current_fw_upg_state.fw_remaining
+			current_fw_upg_state.state = PL_FW_UPG_READ_CHECKSUM	
+		else 
+			current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_INVALID_FW_LENGTH
+			current_fw_upg_state.state = PL_FW_UPG_FAIL
+			on_firmware_update_complete(current_fw_upg_state)
+		end if
+	end if
+end sub
+
+sub device_firmware_read_chekcsum()	
+	dim l as byte(4)
+	if device_firmware_bytes_available()  >= 4 then
+		current_fw_upg_state.fw_checksums(current_fw_upg_state.fw_currentfile) = device_firmware_read_32_uint()		 
+		current_fw_upg_state.state = PL_FW_UPG_READ_FW
+		on_firmware_update_start(current_fw_upg_state)   'Let the app know which file will be upgraded. 
+	end if
+end sub
+
+
+sub device_firmware_write_tios_app(fw as string) 		
+		fd.buffernum=0   		
+		if (current_fw_upg_state.fw_page mod 2 ) = 0 then
+			fd.setbuffer(fw , 0)  				
+		else 
+			fd.setbuffer(fw, 128)  				
+			fd.setsector(DISK_SIZE+current_fw_upg_state.fw_sector)			
+			fd.buffernum=1
+			fd.getsector(DISK_SIZE+current_fw_upg_state.fw_sector)				 				
+			current_fw_upg_state.fw_sector = current_fw_upg_state.fw_sector + 1
+		end if				
+end sub
+
+sub device_firmware_write_wa2000_mon_app(fw as string) 		
+		wln.writeflashpage(fw)	
+end sub
+
+
+sub device_firmware_get_fw_block()
+	dim fw as string
+	dim percent_complete, total_percent as byte
+	dim i as dword
+	if current_fw_upg_state.fw_remaining  >= FW_UPG_BLK_LEN then   'We have remaining pages for the firmware update
+		if device_firmware_bytes_available()  >= FW_UPG_BLK_LEN then			
+			device_firmware_read_data(fw,FW_UPG_BLK_LEN)
+		end if
+	else 'Last block of firmware data
+		if device_firmware_bytes_available()  >= current_fw_upg_state.fw_remaining then					
+			device_firmware_read_data(fw,current_fw_upg_state.fw_remaining)
+		end if 
+	end if 
+	
+	if len(fw) > 0  then 		
+		dim csdata(128) as byte = fw		
+		for i = 0 To len(fw)-1
+			 current_fw_upg_state.fw_checksum  = current_fw_upg_state.fw_checksum + csdata(i) 
+		next i
+		
+		select case current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
+		case COMPRESSED_TIOS_APP:
+			device_firmware_write_tios_app(fw)
+		case WA2000_MON:
+			device_firmware_write_wa2000_mon_app(fw)
+		case WA2000_APP:
+			device_firmware_write_wa2000_mon_app(fw)
+		case else:
+			'Ignore the file.
+		end select
+		
+		on_firmware_update_data_received(current_fw_upg_state)
+		current_fw_upg_state.fw_remaining = current_fw_upg_state.fw_remaining - len(fw)
+		fw_total_remaining = fw_total_remaining - len(fw)
+		current_fw_upg_state.fw_page = current_fw_upg_state.fw_page + 1
+		percent_complete = 100 - 100 * (current_fw_upg_state.fw_remaining/current_fw_upg_state.fw_lengths(current_fw_upg_state.fw_currentfile))
+		total_percent = 100 - (100 * fw_total_remaining/current_fw_upg_state.fw_totalsize)
+		if percent_complete > current_fw_upg_state.fw_percent or total_percent > current_fw_upg_state.fw_total_percent then
+			current_fw_upg_state.fw_percent  = percent_complete
+			current_fw_upg_state.fw_total_percent = total_percent
+			on_firmware_update_percent_change(current_fw_upg_state)
+		end if
+	
+	end if
+	if current_fw_upg_state.fw_remaining = 0 then
+   
+		current_fw_upg_state.fw_checksum  = not current_fw_upg_state.fw_checksum 
+		current_fw_upg_state.fw_checksum = current_fw_upg_state.fw_checksum + 1
+
+		if current_fw_upg_state.fw_checksum<>current_fw_upg_state.fw_checksums(current_fw_upg_state.fw_currentfile) then
+			current_fw_upg_state.fw_fail_reason=PL_FW_FAIL_INVALID_FW_CHECKSUM
+			current_fw_upg_state.state=PL_FW_UPG_FAIL
+			exit sub
+		end if
+		current_fw_upg_state.fw_checksum=0
+		on_firmware_update_file_complete(current_fw_upg_state)
+		current_fw_upg_state.fw_numfiles = current_fw_upg_state.fw_numfiles - 1
+		current_fw_upg_state.fw_currentfile = current_fw_upg_state.fw_currentfile + 1
+		if current_fw_upg_state.fw_numfiles=0 then 
+			current_fw_upg_state.state=PL_FW_UPG_COMPLETE
+			on_firmware_update_complete(current_fw_upg_state)
+		else
+			current_fw_upg_state.state=PL_FW_UPG_READ_FW_TYPE
+			current_fw_upg_state.fw_percent=0
+		end if
+	 
+	end if		
+end sub
+
+
+function device_firmware_upload_update() as no_yes
+		
+	device_firmware_upload_update = YES
+	select case current_fw_upg_state.state
+		case PL_FW_UPG__INIT:
+			device_firmware_download_init()
+		case PL_FW_READ_HEADER:
+			device_firmware_read_header()
+		case PL_FW_UPG_READ_FW_TYPE:
+			device_firmware_read_fw_type()
+		case PL_FW_UPG_READ_LEN:
+			device_firmware_read_fw_length()
+		case PL_FW_UPG_READ_CHECKSUM:
+			device_firmware_read_chekcsum()
+		case PL_FW_UPG_READ_FW:
+			device_firmware_get_fw_block()
+		case PL_FW_UPG_FAIL:
+			on_firmware_update_complete(current_fw_upg_state)
+			device_firmware_upload_update = NO 
+		case PL_FW_UPG_CANCEL:
+			on_firmware_update_complete(current_fw_upg_state)
+			device_firmware_upload_update = NO 
+	end select
+end function
+
+public function device_firmware_upload_async(source as PL_FW_UPG_SOURCE, number as byte) as no_yes	
+	
+	device_firmware_init(source, number) 'Move parameters below into firmware init
+	
+	device_firmware_upload_async=device_firmware_upload_update()
+
+end function
+
+ 
+
+sub on_bt_event(bt_event as enum pl_bt_events)
+	select case bt_event
+	case PL_BT_EVENT_DEV_CONNECTED:
+		sys.debugprint("BT Connected\r\n")
+		bt.setdata("Hello World")
+		bt.send()
+	case PL_BT_EVENT_DEV_DISCONNECTED:
+		sys.debugprint("BT Disconnected\r\n")
+	case PL_BT_EVENT_DEV_POWER_ON:
+		bt.advertise=true
+	case PL_BT_EVENT_DEV_POWER_OFF:
+		sys.debugprint("BT Power Off\r\n")
+	end select
+end sub
+
+function get_fw_upg_state() as pl_upg_state_t 
+	get_fw_upg_state=current_fw_upg_state
+end function
+
+
+

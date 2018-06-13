@@ -1,0 +1,47 @@
+<?
+include "upgrade.tbh"
+include "global.tbh"
+dim s, method, value as string=sock.httprqstring
+dim b as byte=instr(1,s,"method=",1)
+sock.gethttprqstring(b+7)
+s=sock.httprqstring
+b=instr(1,s,"&value=",1)
+method = sock.gethttprqstring(b-1)
+sock.gethttprqstring(7)
+s=sock.httprqstring
+b=instr(1,s," HTTP/1.1",1)
+value = sock.gethttprqstring(b-1)
+?>
+
+<!DOCTYPE html>
+<html> 
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+<?
+if method="web" then
+	sys.debugprint(value)
+	start_dns(value)
+else if method="socket" then
+   '
+ 	device_firmware_upload_async(PL_FW_UPG_SOCK, value)
+	upload_started=true
+else if method="ser" then
+	device_firmware_upload_async(PL_FW_UPG_SER, value)
+	upload_started=true
+else if method="ble" then
+	device_firmware_upload_async(PL_FW_UPG_BLE, 0)
+	upload_started=true
+	set_LED(&b10000)
+end if
+
+?>
+
+
+
+</body>
+</html>

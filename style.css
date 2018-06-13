@@ -1,0 +1,41 @@
+body {
+    background-color: #f0f0f0;
+}
+
+div {
+    padding: 10px;
+}
+
+h1 {
+    color: rgba(0,0,0,0.65);
+	font-size: x-large
+}
+
+h2 {
+    color: red;
+	font-size:large
+}
+
+h3 {
+    color: rgba(0,0,0,0.65);
+	font-size: large
+}
+
+
+.logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-link{
+  border:none;
+  outline:none;
+  background:none;
+  cursor:pointer;
+  color:#0000EE;
+  padding:0;
+  text-decoration:underline;
+  font-family:inherit;
+  font-size:inherit;
+}

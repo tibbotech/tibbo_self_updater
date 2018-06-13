@@ -1,0 +1,9 @@
+<?
+include "upgrade.tbh"
+?>
+
+<H1> Status </H1>
+
+Number Of files: <?  sock.setdata(str(current_fw_upg_state.fw_numfiles))  ?> <br>
+Total Size <?  sock.setdata(lstr(current_fw_upg_state.fw_totalsize))  ?> <br>
+Total Percent <?  sock.setdata(str(current_fw_upg_state.fw_total_percent))  ?> <br>
