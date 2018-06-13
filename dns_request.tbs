@@ -75,9 +75,8 @@ sub on_sock_data_arrival()
 	dns_proc_data()
 	
 	if dns_started=true and sock.num=request_socket and sock.statesimple=PL_SSTS_EST then
-		s=sock.peekdata(255)
-		get_headers(request_socket,s)
-		'remove_HTML_headers(request_socket, s)
+		'get_headers(request_socket,s)
+		skip_http_headers(request_socket)
 	end if
 
 end sub

@@ -189,9 +189,8 @@ condition=
 locked=no
 location=project
 [file24]
-path=html_helper.tbs
+path=http_helper.tbs
 type=basic
 format=65001
-condition=
 locked=no
 location=project

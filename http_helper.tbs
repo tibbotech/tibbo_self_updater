@@ -1,9 +1,6 @@
 include "global.tbh"
 
-'Removes all HTML headers.
-
-declare 
-
+'Removes all HTTP headers.
 
 sub skip_http_headers(sock_number as byte)
 	
@@ -28,7 +25,7 @@ function get_http_header(sock_number as byte, byref html as string) as string
 	dim startp as byte
 
 	startp=instr(1,html,"\x0d\x0a", 1)
-	get_headers=sock.getdata(startp-1)
+'	get_headers=sock.getdata(startp-1)
 	sock.getdata(2)
 	
 end function
