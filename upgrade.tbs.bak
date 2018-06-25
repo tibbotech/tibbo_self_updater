@@ -45,8 +45,8 @@ sub device_firmware_download_init_ble()
 	bt.rxbuffrq(64)	 'Change this 64 to a define
 	sys.buffalloc
 	
-	if bt.enabled<>YES then
-		bt.enable
+	if bt.poweredon<>YES then
+		bt.enable(yes)
 	end if
 
 	 
@@ -76,30 +76,7 @@ sub init_serial()
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
-	
-	
-	
-	
-	
-	
-'	ser.baudrate=ser.div9600   '9600/9600=1
-'	ser.baudrate=ser.div9600/2 '19200/9600=2
-'	ser.baudrate=ser.div9600/4 '38400/9600=4
-'	ser.baudrate=ser.div9600/5 '56000/9600=5
-'	ser.baudrate=ser.div9600/6 '57600/9600=6
-'	ser.baudrate=ser.div9600/12 '115200/9600=12
-'	ser.baudrate=ser.div9600/13 '128000/9600=13
-'	ser.baudrate=ser.div9600/16 '153600/9600=16
-'	ser.baudrate=ser.div9600/24 '230400/9600=24
-'	ser.baudrate=ser.div9600/26 '256000/9600=26
-	ser.baudrate=ser.div9600/48 '460800/9600=48
-'	ser.baudrate=ser.div9600/96 '921600/9600=96
-
-	
-	
-	
-	
-	
+	ser.baudrate=ser.div9600
 	ser.flowcontrol=ENABLED
 	ser.rtsmap=PL_IO_NUM_0
 	io.num=PL_IO_NUM_0
@@ -116,10 +93,8 @@ sub init_serial()
 	ser.rxclear()
 	ser.txclear()
 	ser.enabled=YES
-
 	
 end sub
-
 
 function device_firmware_read_32_uint() as dword
 	dim l as byte(4)
@@ -167,9 +142,7 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 			data = sock.getdata(count)	
 		case PL_FW_UPG_SER:
 			ser.num=current_fw_upg_state.source_num
-			data = ser.getdata(count)
-			ser.setdata(data)
-			ser.send
+			data = ser.getdata(count)	
 		case else:
 			data = ""
 	end select
@@ -197,9 +170,9 @@ sub device_firmware_read_fw_type()
 		
 		select case current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
 		case WA2000_MON:
-			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)
+			wln.setupgraderegion(PL_WLN_MON)
 		case WA2000_APP:			
-			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MAIN)
+			wln.setupgraderegion(PL_WLN_FW)
 		case else:
 			
 		end select		
@@ -252,7 +225,7 @@ sub device_firmware_write_tios_app(fw as string)
 end sub
 
 sub device_firmware_write_wa2000_mon_app(fw as string) 		
-		'wln.writeflashpage(fw)	
+		wln.writeflashpage(fw)	
 end sub
 
 
@@ -363,15 +336,15 @@ end function
 
 sub on_bt_event(bt_event as enum pl_bt_events)
 	select case bt_event
-	case PL_BT_EVENT_CONNECTED:
+	case PL_BT_EVENT_DEV_CONNECTED:
 		sys.debugprint("BT Connected\r\n")
 		bt.setdata("Hello World")
 		bt.send()
-	case PL_BT_EVENT_DISCONNECTED:
+	case PL_BT_EVENT_DEV_DISCONNECTED:
 		sys.debugprint("BT Disconnected\r\n")
-	case PL_BT_EVENT_ENABLED:
+	case PL_BT_EVENT_DEV_POWER_ON:
 		bt.advertise=true
-	case PL_BT_EVENT_DISABLED:
+	case PL_BT_EVENT_DEV_POWER_OFF:
 		sys.debugprint("BT Power Off\r\n")
 	end select
 end sub

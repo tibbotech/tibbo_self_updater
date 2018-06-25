@@ -1,6 +1,5 @@
 include "global.tbh"
-include "upgrade.tbh"
-public dim dns_socket, request_socket, upgrade_socket as byte
+dim dns_socket, request_socket as byte
 dim dns_started as boolean=false
 dim s as string
 declare sub start_dns(domainName as string)
@@ -69,13 +68,9 @@ sub send_request(request as string, interface as pl_sock_interfaces)
 
 end sub
 
-
-
 sub on_sock_data_arrival()
 
-	#if GA1000 
 	wln_proc_data()
-	#endif
 	dhcp_proc_data()
 	dns_proc_data()
 	
@@ -83,11 +78,5 @@ sub on_sock_data_arrival()
 		'get_headers(request_socket,s)
 		skip_http_headers(request_socket)
 	end if
-
-	
-	if upload_started=true and sock.num=upgrade_socket then
-		device_firmware_upload_update()
-	end if
-		
 
 end sub

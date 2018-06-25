@@ -6,7 +6,7 @@
 
 
 declare upload_started as boolean
-declare dns_socket, upgrade_socket as byte
+declare dns_socket as byte
 declare device_name as string
 
 enum PL_FW_UPG_STATE
@@ -35,6 +35,7 @@ enum PL_UPG_FW_TYPE
 	WA3000_MON, 
 	WA3000_APP
 end enum 
+
 
 enum PL_FW_UPG_SOURCE
 	PL_FW_UPG_BLE=0,
@@ -101,4 +102,3 @@ declare sub on_firmware_update_file_complete(byref current_fw_upg_state as pl_up
 declare sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
 
 declare sub init_serial()
-declare sub init_socket()
