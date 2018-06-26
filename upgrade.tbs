@@ -32,14 +32,15 @@ end sub
 sub device_firmware_download_init_ble()
 	dim s as string
 	dim mac as string
+	dim b as byte
 	'IF GA10000 dont do this
 	'set the state to fai land set gail rteadon 
 	
 	
 	bt.rxclear()
 	bt.txclear()	
-	mac=bt.mac
-	s=DEVICE_NAME+mid(mac,9,2)+":"+mid(mac,11,2)
+	
+	s=DEVICE_NAME+right(hex_mac(bt.mac),5)
 	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
 	bt.name = s
 	bt.rxbuffrq(64)	 'Change this 64 to a define
@@ -52,6 +53,38 @@ sub device_firmware_download_init_ble()
 	 
 	
 end sub
+
+function hex_mac(mac as string) as string
+
+	dim startp as byte
+	dim prevstartp as byte = 0
+	dim f as byte
+	dim s as string
+	
+	for f=1 to 6
+		prevstartp=startp
+		startp=instr(1,mac,".",f)
+		s=left(mac,startp-1)
+		s=right(s,startp-prevstartp-1)
+		s=hex(s)
+		if len(s)=3 then
+			s=right(s,1)
+			s="0"+s
+		else
+			s=right(s,2)
+		end if
+		s=s+":"
+		hex_mac=hex_mac+s
+	next f
+	
+	hex_mac=left(hex_mac,len(hex_mac)-1)
+	
+	sys.debugprint(hex_mac)
+
+
+	
+end function
+
 
 sub device_firmware_download_init()
 select case current_fw_upg_state.source
@@ -76,30 +109,7 @@ sub init_serial()
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
-	
-	
-	
-	
-	
-	
-'	ser.baudrate=ser.div9600   '9600/9600=1
-'	ser.baudrate=ser.div9600/2 '19200/9600=2
-'	ser.baudrate=ser.div9600/4 '38400/9600=4
-'	ser.baudrate=ser.div9600/5 '56000/9600=5
-'	ser.baudrate=ser.div9600/6 '57600/9600=6
-'	ser.baudrate=ser.div9600/12 '115200/9600=12
-'	ser.baudrate=ser.div9600/13 '128000/9600=13
-'	ser.baudrate=ser.div9600/16 '153600/9600=16
-'	ser.baudrate=ser.div9600/24 '230400/9600=24
-'	ser.baudrate=ser.div9600/26 '256000/9600=26
-	ser.baudrate=ser.div9600/48 '460800/9600=48
-'	ser.baudrate=ser.div9600/96 '921600/9600=96
-
-	
-	
-	
-	
-	
+	set_baudrate(b115200)
 	ser.flowcontrol=ENABLED
 	ser.rtsmap=PL_IO_NUM_0
 	io.num=PL_IO_NUM_0
@@ -120,6 +130,29 @@ sub init_serial()
 	
 end sub
 
+sub set_baudrate(baudrate as baudrates)
+	
+	select case baudrate
+		
+		case b1200:		ser.baudrate=ser.div9600*8
+		case b2400:		ser.baudrate=ser.div9600*4
+		case b4800:		ser.baudrate=ser.div9600*2 
+		case b9600:		ser.baudrate=ser.div9600   
+		case b19200:	ser.baudrate=ser.div9600/2 
+		case b38400:	ser.baudrate=ser.div9600/4
+		case b56000:	ser.baudrate=ser.div9600/5
+		case b57600:	ser.baudrate=ser.div9600/6
+		case b115200:	ser.baudrate=ser.div9600/12
+		case b128000:	ser.baudrate=ser.div9600/13 
+		case b153600:	ser.baudrate=ser.div9600/16
+		case b230400:	ser.baudrate=ser.div9600/24
+		case b256000:	ser.baudrate=ser.div9600/26
+		case b460800:	ser.baudrate=ser.div9600/48
+		case b921600:	ser.baudrate=ser.div9600/96
+	
+	end select
+	
+end sub
 
 function device_firmware_read_32_uint() as dword
 	dim l as byte(4)

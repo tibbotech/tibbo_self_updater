@@ -73,13 +73,32 @@ type pl_upg_state_t
 	 source_num as byte
 end type
 
+enum baudrates	
+	b1200,
+	b2400,
+	b4800,
+	b9600,
+	b19200,
+	b38400,
+	b56000,
+	b57600,
+	b115200,
+	b128000,
+	b153600,
+	b230400,
+	b256000,
+	b460800,
+	b921600
+end enum
  
 declare current_fw_upg_state  as pl_upg_state_t
 
 declare function device_firmware_upload_async(source as PL_FW_UPG_SOURCE, number as byte) as no_yes
 declare function device_firmware_upload_update() as no_yes
 
+declare function hex_mac(mac as string) as string
 
+declare sub set_baudrate(baudrate as baudrates)
 declare sub start_dns(domainName as string)
 declare sub DHCP_DNS_init(interface as pl_sock_interfaces)
 
