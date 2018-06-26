@@ -32,6 +32,8 @@ declare sub skip_http_headers(request_socket as byte)
 declare function get_headers(sock_number as string, byref html as string) as string
 declare function remove_header_get_filename() as string
 declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
+declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
+declare sub delay_ms(ms as dword)
 
 const DHCP_FAIL_LIMIT=1 'max number of DHCP retry "batches"
 const ALT_NET_IP="192.168.1.40"

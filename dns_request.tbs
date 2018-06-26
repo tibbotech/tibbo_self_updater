@@ -69,8 +69,6 @@ sub send_request(request as string, interface as pl_sock_interfaces)
 
 end sub
 
-
-
 sub on_sock_data_arrival()
 
 	#if GA1000 
@@ -85,7 +83,7 @@ sub on_sock_data_arrival()
 	end if
 
 	
-	if upload_started=true and sock.num=upgrade_socket then
+	if upload_started=true and sock.num=UPG_SOCK_NUM then
 		device_firmware_upload_update()
 	end if
 		

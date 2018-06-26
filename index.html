@@ -62,13 +62,14 @@ sock.send?><br>
 
 
 	<h3><input type="radio" id="web" name="source" checked> Webpage<br><div class="box"><input type="text" id="url" value="www.tibbo.com"></div><br>
-	<input type="radio" id="serial" name="source"> Serial<br><div class="box"><select name="serialport" id="port">
+	<input type="radio" id="ser" name="source"> Serial<br><div class="box"><select name="serialport" id="port">
 		<option value="0">0</option>><br>
 		<option value="1">1</option>><br>
 		<option value="2">2</option>><br>
 		<option value="3">3</option>><br>
 		</select></div><br>
-	<input type="radio" id="bt" name="source"> Bluetooth
+	<input type="radio" id="sock" name="source"> Ethernet<br><br>
+	<input type="radio" id="ble" name="source"> Bluetooth
     
 
 	<br><br><br><button type="button" onclick="loadDoc()">Continue</button></h3>
@@ -81,28 +82,26 @@ function loadDoc() {
 var method  = ""
 var value  = ""
 if(document.getElementById("web").checked){
-	method = "web"
-    value = document.getElementById("url").value
-} else if(document.getElementById("serial").checked){
-	method = "ser"
+	method = "web";
+    value = document.getElementById("url").value;
+} else if(document.getElementById("ser").checked){
+	method = "ser";
     var e = document.getElementById("port");
     value = e.options[e.selectedIndex].value;
-} else if(document.getElementById("bt").checked){
-	method = "ble"
+} else if(document.getElementById("sock").checked){
+	method = "sock";
+} else if(document.getElementById("ble").checked){
+	method = "ble";
 }
  
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) 
-	  
-	  //loadStatus();
-	  setInterval(loadStatus, 1000);		 
-   };
+	setInterval(loadStatus, 1000);		 
+	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value, true);
 	xhttp.send();
-	
 }
-
 
 function loadStatus() {
  
@@ -117,11 +116,6 @@ if (this.readyState == 4 && this.status == 200) {
 	xhttp.send();	
 }
 
-
-
-
 </script>
-
-
 </body>
 </html>

@@ -26,9 +26,8 @@ value = sock.gethttprqstring(b-1)
 if method="web" then
 	sys.debugprint(value)
 	start_dns(value)
-else if method="socket" then
-   '
- 	device_firmware_upload_async(PL_FW_UPG_SOCK, value)
+else if method="sock" then
+   	device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
 	upload_started=true
 else if method="ser" then
 	device_firmware_upload_async(PL_FW_UPG_SER, value)

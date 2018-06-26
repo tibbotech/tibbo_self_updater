@@ -29,28 +29,25 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	fw_total_remaining=0
 end sub
 
+
 sub device_firmware_download_init_ble()
+	
 	dim s as string
 	dim mac as string
 	dim b as byte
 	'IF GA10000 dont do this
 	'set the state to fai land set gail rteadon 
 	
-	
 	bt.rxclear()
 	bt.txclear()	
-	
 	s=DEVICE_NAME+right(hex_mac(bt.mac),5)
 	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
 	bt.name = s
 	bt.rxbuffrq(64)	 'Change this 64 to a define
 	sys.buffalloc
-	
 	if bt.enabled<>YES then
 		bt.enable
 	end if
-
-	 
 	
 end sub
 
@@ -74,15 +71,11 @@ function hex_mac(mac as string) as string
 			s=right(s,2)
 		end if
 		s=s+":"
-		hex_mac=hex_mac+s
+		hex_mac=hex_mac+s+":"
 	next f
 	
 	hex_mac=left(hex_mac,len(hex_mac)-1)
-	
-	sys.debugprint(hex_mac)
 
-
-	
 end function
 
 
@@ -91,7 +84,8 @@ select case current_fw_upg_state.source
 	case PL_FW_UPG_BLE:
 		device_firmware_download_init_ble()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
-	case PL_FW_UPG_SOCK:		
+	case PL_FW_UPG_SOCK:
+		init_receive_socket()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SER:
 		init_serial()
@@ -109,7 +103,7 @@ sub init_serial()
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
-	set_baudrate(b115200)
+	set_baudrate(b460800)
 	ser.flowcontrol=ENABLED
 	ser.rtsmap=PL_IO_NUM_0
 	io.num=PL_IO_NUM_0
@@ -128,6 +122,24 @@ sub init_serial()
 	ser.enabled=YES
 
 	
+end sub
+
+sub init_receive_socket()
+
+	dim prevsock as byte=sock.num
+	
+	sock.num=UPG_SOCK_NUM   'Receiving Socket
+	sock.targetinterface=PL_SOCK_INTERFACE_WLN
+	sock.protocol=PL_SOCK_PROTOCOL_TCP
+	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
+	sock.allowedinterfaces="WLN"
+	sock.localportlist="1000"
+	sock.rxbuffrq(16)
+	sock.txbuffrq(16) 
+	sys.buffalloc
+	
+	sock.num=prevsock
+
 end sub
 
 sub set_baudrate(baudrate as baudrates)

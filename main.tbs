@@ -12,7 +12,7 @@ end sub
 'Callback when the file type is read to let app know what will be updated.  
 
 sub on_firmware_update_start(byref current_fw_upg_state as pl_upg_state_t) 
-	sys.debugprint("Uploaded started")
+	sys.debugprint("Upload started")
 end sub
 
 sub on_firmware_update_data_received(byref current_fw_upg_state as pl_upg_state_t) 
@@ -26,13 +26,82 @@ end sub
 
 'Callback when all files have been downloaded. 
 sub on_firmware_update_file_complete(byref current_fw_upg_state as pl_upg_state_t)		
+	
+	
+	
 	sys.debugprint("File completed")
+		
+	
+end sub
+
+sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
+	
+dim write_delay_secs as dword
+	dim region_name as string
+	if region = PL_WLN_UPGRADE_REGION_MAIN then
+		region_name = "Firmware"
+	else  if region =  PL_WLN_UPGRADE_REGION_MONITOR then
+		region_name = "Monitor"
+	end if
+	
+	'We can write 8 blocks per second at worse case. in reality we dont need a delay here at this stage + time to check the firmware integrity
+	write_delay_secs = (filesize/4096 + 1)/8   + 1  + (filesize/4096 + 1)/29 +1	
+	while write_delay_secs > 0		
+		sys.debugprint("Upgrading WA2000 " + region_name + ": " + lstri(write_delay_secs)+"\r\n")
+		delay_ms(1000)
+		write_delay_secs = write_delay_secs -1
+	wend
+end sub
+
+
+sub delay_ms(ms as dword)
+
+	sys.timercountms = 0
+	while sys.timercountms < ms
+	wend	
+
 end sub
 
 'Callback when all files have been downloaded. 
 sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
 
-
+	dim f as byte
+	for f=0 to current_fw_upg_state.fw_numfiles
+		if current_fw_upg_state.fw_types(f)=WA2000_MON then
+			wln.disable
+			while wln.enabled =YES		
+			wend
+			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)		'Tell the module we will be upgrading from or writing to the upgrade region
+			wln.upgrade(PL_WLN_UPGRADE_REGION_MONITOR,romfile.size,current_fw_upg_state.fw_checksum)	'We dont need the parameter if we have two syscalls. There are two command
+			upgrade_delay(current_fw_upg_state.fw_totalsize, PL_WLN_UPGRADE_REGION_MONITOR)
+			
+			if wln.waitforupgradecompletion=OK then
+				sys.debugprint("WA2000 monitor upgrades successfully\r\n")
+			else	
+				sys.debugprint("WA2000 monitor upgradee failed\r\n")
+			end if
+		end if
+	next f
+	
+'	for f to no of files
+'		if filetype =  firmware then
+'			wln.disable
+'			reset_wln()
+'			'========================= Upgrade code
+'			module_type = wln.getmoduletype
+'			delay_ms(1000)
+'			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MAIN)
+'			'wln.upgrade(PL_WLN_UPGRADE_REGION_MAIN,romfile.size,checksum)
+			
+'			upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
+'			if wln.waitforupgradecompletion=OK then
+'				sys.debugprint("WA2000 firmware upgrades successfully\r\n")
+'			else	
+'				sys.debugprint("WA2000 firmware upgradee failed\r\n")
+'			end if 
+'		end if
+		
+'	next f
 
 end sub
 
