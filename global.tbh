@@ -28,8 +28,14 @@ include "dns\trunk\dns.tbh"
 declare sub init()
 declare sub init_http_sockets()
 declare function upload_file() as ok_ng
+declare function get_response() as string
+declare function get_key() as string
+declare function get_value() as string
+declare sub update_state()
+declare sub assign_header_values()
 declare sub skip_http_headers(request_socket as byte)
-declare function get_headers(sock_number as string, byref html as string) as string
+declare sub get_http_headers()
+declare function get_header_value(header as string) as string
 declare function remove_header_get_filename() as string
 declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
 declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)

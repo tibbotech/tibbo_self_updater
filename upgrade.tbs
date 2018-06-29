@@ -13,7 +13,8 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	current_fw_upg_state.source_num = number
 	current_fw_upg_state.state=PL_FW_UPG__INIT
 	current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_NONE
-	current_fw_upg_state.fw_numfiles  = 0	
+	current_fw_upg_state.fw_numfiles  = 0
+	current_fw_upg_state.fw_receivedfiles  = 0	
 	for i = 0 TO MAX_NUM_FILE_UPG - 1 
 		current_fw_upg_state.fw_types(i) = 0
 		current_fw_upg_state.fw_lengths(i) = 0
@@ -296,8 +297,8 @@ sub device_firmware_write_tios_app(fw as string)
 		end if				
 end sub
 
-sub device_firmware_write_wa2000_mon_app(fw as string) 		
-		'wln.writeflashpage(fw)	
+sub device_firmware_write_wa2000_mon_app(fw as string) 			
+	wln.writeflashpage(fw)	
 end sub
 
 
@@ -356,7 +357,9 @@ sub device_firmware_get_fw_block()
 			exit sub
 		end if
 		current_fw_upg_state.fw_checksum=0
+		current_fw_upg_state.fw_receivedfiles=current_fw_upg_state.fw_receivedfiles + 1
 		on_firmware_update_file_complete(current_fw_upg_state)
+		
 		current_fw_upg_state.fw_numfiles = current_fw_upg_state.fw_numfiles - 1
 		current_fw_upg_state.fw_currentfile = current_fw_upg_state.fw_currentfile + 1
 		if current_fw_upg_state.fw_numfiles=0 then 

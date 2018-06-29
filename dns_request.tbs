@@ -6,7 +6,6 @@ dim s as string
 declare sub start_dns(domainName as string)
 declare sub send_request(request as string, interface as pl_sock_interfaces)
 
-
 'Initializes sockets for DNS and Requests.
 
 sub DHCP_DNS_init(interface as pl_sock_interfaces)
@@ -77,15 +76,14 @@ sub on_sock_data_arrival()
 	dhcp_proc_data()
 	dns_proc_data()
 	
-	if dns_started=true and sock.num=request_socket and sock.statesimple=PL_SSTS_EST then
-		'get_headers(request_socket,s)
-		skip_http_headers(request_socket)
+	if dns_started=true and sock.num=request_socket then
+		
+		get_http_headers()
+	
 	end if
 
-	
 	if upload_started=true and sock.num=UPG_SOCK_NUM then
 		device_firmware_upload_update()
 	end if
 		
-
 end sub

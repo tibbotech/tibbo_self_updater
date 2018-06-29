@@ -71,6 +71,7 @@ type pl_upg_state_t
 	 fw_page  as word		 
 	 fw_checksum as dword
 	 source_num as byte
+	 fw_receivedfiles as byte
 end type
 
 enum baudrates	

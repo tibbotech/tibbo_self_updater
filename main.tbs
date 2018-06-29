@@ -51,6 +51,7 @@ dim write_delay_secs as dword
 		delay_ms(1000)
 		write_delay_secs = write_delay_secs -1
 	wend
+	
 end sub
 
 
@@ -66,19 +67,19 @@ end sub
 sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
 
 	dim f as byte
-	for f=0 to current_fw_upg_state.fw_numfiles
+	for f=0 to current_fw_upg_state.fw_receivedfiles
 		if current_fw_upg_state.fw_types(f)=WA2000_MON then
 			wln.disable
 			while wln.enabled =YES		
 			wend
 			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)		'Tell the module we will be upgrading from or writing to the upgrade region
 			wln.upgrade(PL_WLN_UPGRADE_REGION_MONITOR,romfile.size,current_fw_upg_state.fw_checksum)	'We dont need the parameter if we have two syscalls. There are two command
-			upgrade_delay(current_fw_upg_state.fw_totalsize, PL_WLN_UPGRADE_REGION_MONITOR)
+			'upgrade_delay(current_fw_upg_state.fw_totalsize, PL_WLN_UPGRADE_REGION_MONITOR)
 			
 			if wln.waitforupgradecompletion=OK then
-				sys.debugprint("WA2000 monitor upgrades successfully\r\n")
+				sys.debugprint("WA2000 monitor upgrade successful\r\n")
 			else	
-				sys.debugprint("WA2000 monitor upgradee failed\r\n")
+				sys.debugprint("WA2000 monitor upgrade failed\r\n")
 			end if
 		end if
 	next f
