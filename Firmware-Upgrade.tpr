@@ -4,7 +4,7 @@ platform=TPP3W(G2)
 src_lib_ver=2_01_02
 name=Firmware-Upgrade
 output=Firmware-Upgrade.tpc
-debug=on
+debug=off
 defines= /dLCD_TYPE=SOLOMON_SSD1963 /dWLN_WPA=1 /dOBJECT_LCD=LCD_ENABLED /dWLN_AVAILABLE=1 /dOBJECT_FD=FD_ENABLED /dOBJECT_KP=KP_ENABLED /dOBJECT_WLN=WLN_ENABLED
 transport=udp_broadcast
 [address1]
@@ -191,6 +191,13 @@ location=project
 [file24]
 path=http_helper.tbs
 type=basic
+format=65001
+condition=
+locked=no
+location=project
+[file25]
+path=http_helper.tbh
+type=header
 format=65001
 condition=
 locked=no

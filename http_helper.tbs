@@ -1,56 +1,6 @@
 include "global.tbh"
-
-dim startp as byte
-dim b,c as byte=0
-dim httpstring as string
-
-enum states
-	
-	RESPONSE,
-	KEY,
-	VALUE,
-	ASSIGN,
-	COMPLETE,
-	ERROR
-	
-end enum
-
-dim state as states=RESPONSE
-
-type header_values
-
-	key(20) as string
-	value(20) as string
-
-end type
-
-type header_types
-
-	access_control_allow_origin as string
-	access_control_allow_credentials as string
-	access_control_expose_headers as string
-	access_control_max_age as string
-	access_control_allow_methods as string 
-	access_control_allow_headers as string  	 
-	allow as string
-	content_encoding as string   	 
-	content_language as string
-	content_length as string
-	content_location as string
-	content_range as string
-	content_type as string
-	expires as string
-	location as string
-	response as string
-	server as string
-	set_cookie as string 
-	upgrade as string
-	www_authenticate as string
-
-end type
-
-dim http_header_values as header_values
-dim http_header as header_types
+include "http_helper.tbh"
+include "upgrade.tbh"
 
 'Removes all HTTP headers.
 
@@ -105,10 +55,10 @@ sub get_http_headers()
 		assign_header_values()
 		sys.debugprint("Headers Assigned\r\n")
 		state=COMPLETE
-		dim s as string=get_header_value("Datea") 
+		dim s as string=get_header_value("Date")
 		sys.debugprint(s)
 	case COMPLETE:
-	
+		
 		exit sub
 
 	case ERROR:
