@@ -26,7 +26,7 @@ address=0.36.119.85.251.40
 [address5]
 platform=TPP3W(G2)
 transport=udp_broadcast
-address=0.1.2.3.4.231
+address=0.36.119.85.251.40
 [file1]
 path=main.tbs
 type=basic
@@ -191,13 +191,6 @@ location=project
 [file24]
 path=http_helper.tbs
 type=basic
-format=65001
-condition=
-locked=no
-location=project
-[file25]
-path=http_helper.tbh
-type=header
 format=65001
 condition=
 locked=no

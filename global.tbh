@@ -1,7 +1,7 @@
 #define DHCP_DEBUG_PRINT 1 
 #define DNS_DEBUG_PRINT 1 
 #define STG_DEBUG_PRINT 1 
-#define GA1000 1
+#define GA1000 0
 
 'Wi-Fi setup
 
