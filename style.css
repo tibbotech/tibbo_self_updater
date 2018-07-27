@@ -1,24 +1,25 @@
-body {
-    background-color: #f0f0f0;
-}
-
 div {
     padding: 10px;
 }
 
 h1 {
-    color: rgba(0,0,0,0.65);
-	font-size: x-large
+    color: black;
+	font-size: xx-large
 }
 
 h2 {
-    color: red;
-	font-size:large
+    color: black;
+	font-size:x-large
 }
 
 h3 {
-    color: rgba(0,0,0,0.65);
-	font-size: large
+    color: black;
+	font-size: medium
+}
+
+h4 {
+    color: black;
+	font-size: small
 }
 
 
@@ -39,3 +40,44 @@ h3 {
   font-family:inherit;
   font-size:inherit;
 }
+
+.logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.button {
+  background-color: #f4511e;
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-align: center;
+  font-size: large;
+  margin: 4px 2px;
+  opacity: 0.6;
+  transition: 0.3s;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {opacity: 1}
+
+
+.smallbutton {
+  background-color: #f4511e;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: medium;
+  margin: 4px 2px;
+  opacity: 0.6;
+  transition: 0.3s;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.smallbutton:hover {opacity: 1}

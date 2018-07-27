@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html> 
+<head>
+<title>Firmware Uploader</title>
+<style>
+
+div.box {
+display: inline-block;
+padding: 5px 0px 25px 0px;
+background: transparent;
+font-size: 20px;
+font-weight: bold;
+}
+
+</style>
+
+
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+<a href="http://tibbo.com/">
+<img src="logo.png" alt="Tibbo Technology" class="logo" width="155" height="80"/>
+</a>
+
+<div id="demo" align="center">
+
+<h3>
+Module Type:
+<?
+dim moduletype as string 
+if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then
+	moduletype = "WA2000"
+else
+	moduletype = "GA1000"
+end if
+sock.setdata(moduletype)
+sock.send?>
+<br>
+
+<?if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then?>
+Firmware Version: 
+<?sock.setdata(wln.fwversion)
+sock.send?><br>
+WA2000 Monitor Version: 
+<?sock.setdata(wln.monversion)
+sock.send?><br>
+<?end if?>
+Monitor Version:
+<?sock.setdata(sys.monversion)
+sock.send?><br>
+TIOS Version:
+<?
+dim s as string=sys.version
+s=mid(s,2,len(s)-2)
+sock.setdata(s)
+sock.send?><br>
+
+</h3>
+
+<div><h1>Choose Method to Upload Firmware</h1></div>
+
+
+
+	<h3><input type="radio" id="web" name="source" checked> Webpage<br><div class="box"><input type="text" id="url" value="www.tibbo.com"></div><br>
+	<input type="radio" id="ser" name="source"> Serial<br><div class="box"><select name="serialport" id="port">
+		<option value="0">0</option>><br>
+		<option value="1">1</option>><br>
+		<option value="2">2</option>><br>
+		<option value="3">3</option>><br>
+		</select></div><br>
+	<input type="radio" id="sock" name="source"> Ethernet<br><br>
+	<input type="radio" id="ble" name="source"> Bluetooth
+    
+
+	<br><br><br><button type="button" onclick="loadDoc()">Continue</button></h3>
+
+</div>
+
+<script>
+
+function loadDoc() {
+var method  = ""
+var value  = ""
+if(document.getElementById("web").checked){
+	method = "web";
+    value = document.getElementById("url").value;
+} else if(document.getElementById("ser").checked){
+	method = "ser";
+    var e = document.getElementById("port");
+    value = e.options[e.selectedIndex].value;
+} else if(document.getElementById("sock").checked){
+	method = "sock";
+} else if(document.getElementById("ble").checked){
+	method = "ble";
+}
+ 
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) 
+	setInterval(loadStatus, 1000);		 
+	};
+	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value, true);
+	xhttp.send();
+}
+
+function loadStatus() {
+ 
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) {
+	document.getElementById("demo").innerHTML =
+		this.responseText;
+    }
+   };
+	xhttp.open("GET", "status.html", true);
+	xhttp.send();	
+}
+
+</script>
+</body>
+</html>

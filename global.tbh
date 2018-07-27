@@ -3,6 +3,7 @@
 #define STG_DEBUG_PRINT 1 
 #define GA1000 0
 
+#define INTERFACE PL_SOCK_INTERFACE_NET
 'Wi-Fi setup
 
 #define WLN_WPA 1
@@ -40,6 +41,10 @@ declare function remove_header_get_filename() as string
 declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
 declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
 declare sub delay_ms(ms as dword)
+declare sub reset_wln()
+declare sub init_wln_io()
+declare sub update_device(region as pl_wln_upgrade_regions, length as dword, checksum as dword)
+declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
 
 const DHCP_FAIL_LIMIT=1 'max number of DHCP retry "batches"
 const ALT_NET_IP="192.168.1.40"
@@ -48,4 +53,3 @@ const ALT_NET_NETMASK="255.255.255.0"
 const ALT_WLN_IP="192.168.1.41"
 const ALT_WLN_GATEWAY_IP="192.168.1.1"
 const ALT_WLN_NETMASK="255.255.255.0"
-

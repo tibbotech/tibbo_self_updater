@@ -45,9 +45,10 @@ sub callback_dns_answer_acquired(return_type as en_dns_return_type, byref return
 	end if
 	
 end sub
+
 sub callback_dns_ok()
 
-	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", PL_SOCK_INTERFACE_WLN)
+	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", INTERFACE)
 
 end sub
 
@@ -61,10 +62,9 @@ sub send_request(request as string, interface as pl_sock_interfaces)
 		doevents
 	wend
 	
-	s=request
-	sock.setdata(s)
+	sock.setdata(request)
 	sock.send()
-	sys.debugprint(s)
+	sys.debugprint(request)
 
 end sub
 

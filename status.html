@@ -1,9 +1,13 @@
 <?
 include "upgrade.tbh"
+
+if current_fw_upg_state.fw_numfiles>num_of_files then
+	num_of_files=current_fw_upg_state.fw_numfiles
+end if
 ?>
 
-<H1> Status </H1>
-
-Number of Files: <?  sock.setdata(str(current_fw_upg_state.fw_numfiles))  ?><br>
+<h1>Status</h1>
+<h3>
+Number of Files: <?  sock.setdata(str(num_of_files)) ?><br>
 Total Size: <?  sock.setdata(lstr(current_fw_upg_state.fw_totalsize))  ?> bytes<br>
-Total Percent: <?  sock.setdata(str(current_fw_upg_state.fw_total_percent))  ?>%<br>
+Total Percent: <?  sock.setdata(str(current_fw_upg_state.fw_total_percent))  ?>%<br></h3>

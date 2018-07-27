@@ -4,34 +4,38 @@ include "upgrade.tbh"
 sub on_sys_init()
 	
 	init()
-	DHCP_DNS_init(PL_SOCK_INTERFACE_WLN)
+	DHCP_DNS_init(INTERFACE)
+'	dhcp_start(INTERFACE,"","")
+
 	
 end sub
-
 
 'Callback when the file type is read to let app know what will be updated.  
 
 sub on_firmware_update_start(byref current_fw_upg_state as pl_upg_state_t) 
-	sys.debugprint("Upload started")
+
+	sys.debugprint("Upload started\r\n")
+
 end sub
 
 sub on_firmware_update_data_received(byref current_fw_upg_state as pl_upg_state_t) 
 
 end sub
 
-'Callback when data has been written to flash. 
+'Callback when data has been written to flash.
+
 sub on_firmware_update_percent_change(byref current_fw_upg_state as pl_upg_state_t) 
 
+'	sys.debugprint("Data has been written to flash\r\n")
+	
 end sub
 
 'Callback when all files have been downloaded. 
+
 sub on_firmware_update_file_complete(byref current_fw_upg_state as pl_upg_state_t)		
-	
-	
-	
-	sys.debugprint("File completed")
 		
-	
+	sys.debugprint("Upload complete\r\n")
+		
 end sub
 
 sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
@@ -54,7 +58,6 @@ dim write_delay_secs as dword
 	
 end sub
 
-
 sub delay_ms(ms as dword)
 
 	sys.timercountms = 0
@@ -64,45 +67,62 @@ sub delay_ms(ms as dword)
 end sub
 
 'Callback when all files have been downloaded. 
+
 sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
 
+	sys.debugprint("All files have been downloaded.\r\n")
+
 	dim f as byte
+		
 	for f=0 to current_fw_upg_state.fw_receivedfiles
+		
 		if current_fw_upg_state.fw_types(f)=WA2000_MON then
-			wln.disable
-			while wln.enabled =YES		
-			wend
-			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)		'Tell the module we will be upgrading from or writing to the upgrade region
-			wln.upgrade(PL_WLN_UPGRADE_REGION_MONITOR,romfile.size,current_fw_upg_state.fw_checksum)	'We dont need the parameter if we have two syscalls. There are two command
-			'upgrade_delay(current_fw_upg_state.fw_totalsize, PL_WLN_UPGRADE_REGION_MONITOR)
+		
+			update_device(PL_WLN_UPGRADE_REGION_MONITOR, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
+		
+			sys.debugprint("WA2000_MON\r\n")	
 			
-			if wln.waitforupgradecompletion=OK then
-				sys.debugprint("WA2000 monitor upgrade successful\r\n")
-			else	
-				sys.debugprint("WA2000 monitor upgrade failed\r\n")
-			end if
+		else if current_fw_upg_state.fw_types(f)=WA2000_APP then
+		
+			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
+			
+			sys.debugprint("WA2000_APP\r\n")
+				
+		else if current_fw_upg_state.fw_types(f)=COMPRESSED_TIOS then
+		
+			sys.debugprint("COMPRESSED_TIOS\r\n")
+						
+		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS then
+		
+			sys.debugprint("UNCOMPRESSED_TIOS\r\n")
+			
+		else if current_fw_upg_state.fw_types(f)=COMPRESSED_TIOS_APP then
+	
+			sys.debugprint("COMPRESSED_TIOS_APP\r\n")
+						
+		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS_APP then
+		
+			sys.debugprint("UNCOMPRESSED_TIOS_APP\r\n")
+		
 		end if
+			
 	next f
 	
-'	for f to no of files
-'		if filetype =  firmware then
-'			wln.disable
-'			reset_wln()
-'			'========================= Upgrade code
-'			module_type = wln.getmoduletype
-'			delay_ms(1000)
-'			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MAIN)
-'			'wln.upgrade(PL_WLN_UPGRADE_REGION_MAIN,romfile.size,checksum)
-			
-'			upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
-'			if wln.waitforupgradecompletion=OK then
-'				sys.debugprint("WA2000 firmware upgrades successfully\r\n")
-'			else	
-'				sys.debugprint("WA2000 firmware upgradee failed\r\n")
-'			end if 
-'		end if
-		
-'	next f
-
 end sub
+
+sub update_device(region as pl_wln_upgrade_regions, length as dword, checksum as dword)
+
+	wln.setupgraderegion(region)
+	wln.upgrade(region,length,checksum)
+	upgrade_delay(length, region)
+	if wln.waitforupgradecompletion=OK then
+		sys.debugprint("WA2000 firmware upgraded successfully\r\n")
+'		sys.debugprint("Current Version: " + WLN_FWARE_VER + "\r\n")
+	else	
+		sys.debugprint("WA2000 firmware upgrade failed\r\n")
+		pat.play("~R",PL_PAT_CANINT)
+		sys.halt
+	end if 
+
+end sub	
 

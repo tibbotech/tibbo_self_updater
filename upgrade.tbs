@@ -28,8 +28,8 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	current_fw_upg_state.fw_page  = 0
 	current_fw_upg_state.fw_checksum =0 	
 	fw_total_remaining=0
+	
 end sub
-
 
 sub device_firmware_download_init_ble()
 	
@@ -79,8 +79,8 @@ function hex_mac(mac as string) as string
 
 end function
 
-
 sub device_firmware_download_init()
+
 select case current_fw_upg_state.source
 	case PL_FW_UPG_BLE:
 		device_firmware_download_init_ble()
@@ -104,7 +104,7 @@ sub init_serial()
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
-	set_baudrate(b460800)
+	set_baudrate(b115200)
 	ser.flowcontrol=ENABLED
 	ser.rtsmap=PL_IO_NUM_0
 	io.num=PL_IO_NUM_0
@@ -122,7 +122,6 @@ sub init_serial()
 	ser.txclear()
 	ser.enabled=YES
 
-	
 end sub
 
 sub init_receive_socket()
@@ -130,7 +129,7 @@ sub init_receive_socket()
 	dim prevsock as byte=sock.num
 	
 	sock.num=UPG_SOCK_NUM   'Receiving Socket
-	sock.targetinterface=PL_SOCK_INTERFACE_WLN
+	sock.targetinterface=INTERFACE
 	sock.protocol=PL_SOCK_PROTOCOL_TCP
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.allowedinterfaces="WLN"
@@ -168,6 +167,7 @@ sub set_baudrate(baudrate as baudrates)
 end sub
 
 function device_firmware_read_32_uint() as dword
+	
 	dim l as byte(4)
 	dim s as string
 	select case current_fw_upg_state.source
@@ -186,6 +186,7 @@ function device_firmware_read_32_uint() as dword
 		case else:
 			device_firmware_read_32_uint = 0			
 	end select
+	
 end function
 
 function device_firmware_bytes_available() as dword
@@ -202,9 +203,11 @@ function device_firmware_bytes_available() as dword
 		case else:
 			device_firmware_bytes_available = 0
 	end select
+	
 end function
 
 sub device_firmware_read_data(byref data as string, byref count as dword)
+
 	select case current_fw_upg_state.source
 		case PL_FW_UPG_BLE:		   	
 			data = bt.getdata(count)							 
@@ -219,9 +222,11 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 		case else:
 			data = ""
 	end select
+	
 end sub
 
 sub device_firmware_read_header()	
+
 	if device_firmware_bytes_available() >= 8 then	
 		current_fw_upg_state.fw_numfiles = device_firmware_read_32_uint()
 		current_fw_upg_state.fw_totalsize = device_firmware_read_32_uint()
@@ -234,9 +239,11 @@ sub device_firmware_read_header()
 			on_firmware_update_complete(current_fw_upg_state)
 		end if
 	end if
+	
 end sub
 
 sub device_firmware_read_fw_type()
+
 	dim l as byte(4)
 	if device_firmware_bytes_available()  >= 4 then	
 		current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile) = device_firmware_read_32_uint()	
@@ -257,9 +264,11 @@ sub device_firmware_read_fw_type()
 			on_firmware_update_complete(current_fw_upg_state)
 		end if
 	end if
+	
 end sub
 
 sub device_firmware_read_fw_length()
+
 	dim l as byte(4)
 	if device_firmware_bytes_available()  >= 4 then
 		current_fw_upg_state.fw_remaining = device_firmware_read_32_uint()	
@@ -272,37 +281,41 @@ sub device_firmware_read_fw_length()
 			on_firmware_update_complete(current_fw_upg_state)
 		end if
 	end if
+	
 end sub
 
 sub device_firmware_read_chekcsum()	
+
 	dim l as byte(4)
 	if device_firmware_bytes_available()  >= 4 then
 		current_fw_upg_state.fw_checksums(current_fw_upg_state.fw_currentfile) = device_firmware_read_32_uint()		 
 		current_fw_upg_state.state = PL_FW_UPG_READ_FW
 		on_firmware_update_start(current_fw_upg_state)   'Let the app know which file will be upgraded. 
 	end if
+	
 end sub
 
+sub device_firmware_write_tios_app(fw as string) 
 
-sub device_firmware_write_tios_app(fw as string) 		
-		fd.buffernum=0   		
-		if (current_fw_upg_state.fw_page mod 2 ) = 0 then
-			fd.setbuffer(fw , 0)  				
-		else 
-			fd.setbuffer(fw, 128)  				
-			fd.setsector(DISK_SIZE+current_fw_upg_state.fw_sector)			
-			fd.buffernum=1
-			fd.getsector(DISK_SIZE+current_fw_upg_state.fw_sector)				 				
-			current_fw_upg_state.fw_sector = current_fw_upg_state.fw_sector + 1
-		end if				
+	fd.buffernum=0   		
+	if (current_fw_upg_state.fw_page mod 2 ) = 0 then
+		fd.setbuffer(fw , 0)  				
+	else 
+		fd.setbuffer(fw, 128)  				
+		fd.setsector(DISK_SIZE+current_fw_upg_state.fw_sector)			
+		fd.buffernum=1
+		fd.getsector(DISK_SIZE+current_fw_upg_state.fw_sector)				 				
+		current_fw_upg_state.fw_sector = current_fw_upg_state.fw_sector + 1
+	end if		
+		
 end sub
 
 sub device_firmware_write_wa2000_mon_app(fw as string) 			
 	wln.writeflashpage(fw)	
 end sub
 
-
 sub device_firmware_get_fw_block()
+
 	dim fw as string
 	dim percent_complete, total_percent as byte
 	dim i as dword
@@ -371,8 +384,8 @@ sub device_firmware_get_fw_block()
 		end if
 	 
 	end if		
+	
 end sub
-
 
 function device_firmware_upload_update() as no_yes
 		
@@ -397,19 +410,18 @@ function device_firmware_upload_update() as no_yes
 			on_firmware_update_complete(current_fw_upg_state)
 			device_firmware_upload_update = NO 
 	end select
+	
 end function
 
 public function device_firmware_upload_async(source as PL_FW_UPG_SOURCE, number as byte) as no_yes	
 	
 	device_firmware_init(source, number) 'Move parameters below into firmware init
-	
 	device_firmware_upload_async=device_firmware_upload_update()
 
 end function
 
- 
-
 sub on_bt_event(bt_event as enum pl_bt_events)
+
 	select case bt_event
 	case PL_BT_EVENT_CONNECTED:
 		sys.debugprint("BT Connected\r\n")
@@ -422,11 +434,11 @@ sub on_bt_event(bt_event as enum pl_bt_events)
 	case PL_BT_EVENT_DISABLED:
 		sys.debugprint("BT Power Off\r\n")
 	end select
+	
 end sub
 
 function get_fw_upg_state() as pl_upg_state_t 
+
 	get_fw_upg_state=current_fw_upg_state
+	
 end function
-
-
-

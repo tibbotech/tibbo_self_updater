@@ -2,6 +2,7 @@
 include "upgrade.tbh"
 include "global.tbh"
 dim s, method, value as string=sock.httprqstring
+dim num_of_files as byte=0
 dim b as byte=instr(1,s,"method=",1)
 sock.gethttprqstring(b+7)
 s=sock.httprqstring
@@ -22,12 +23,19 @@ value = sock.gethttprqstring(b-1)
 
 <body>
 
+</br><a href="http://tibbo.com/">
+<img src="logo.png" alt="Tibbo Technology" class="logo" width="155" height="80"/>
+</a>
+
+
+
 <?
 if method="web" then
 	sys.debugprint(value)
 	start_dns(value)
-else if method="sock" then
-   	device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
+else if method="wifi" then
+	init_serial()	
+	device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
 	upload_started=true
 else if method="ser" then
 	device_firmware_upload_async(PL_FW_UPG_SER, value)

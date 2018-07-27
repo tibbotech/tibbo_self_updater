@@ -2,16 +2,17 @@ include "global.tbh"
 include "upgrade.tbh"
 dim wln_dhcp_fail_ctr as byte 
 
+
 sub init()
 
 	stg_start()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
 	init_http_sockets()
 
-	if connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)<>WLN_STATUS_OK then
-		sys.halt
-	end if	
-'	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
+'	if connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)<>WLN_STATUS_OK then
+'		sys.halt
+'	end if	
+	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
 	
 	fd.formatj((fd.availableflashspace/4)*3,10,100)
 	fd.mount
@@ -36,7 +37,7 @@ sub init_http_sockets()
 		sock.txbuffrq(4)
 		sock.varbuffrq(4)
 		sock.redir(PL_REDIR_SOCK0 + sock.num)
-		sock.targetinterface=PL_SOCK_INTERFACE_WLN
+		sock.targetinterface=INTERFACE
 		sock.protocol=PL_SOCK_PROTOCOL_TCP
 		sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 		sock.allowedinterfaces="NET,WLN"
@@ -107,7 +108,7 @@ sub callback_dhcp_ok(renew as no_yes, interface as pl_sock_interfaces, byref ip 
 			wln.gatewayip=gateway_ip
 			wln.netmask=netmask
 		end if
-		dns_connect(PL_SOCK_INTERFACE_WLN, "8.8.4.4", 0)
+		dns_connect(INTERFACE, "8.8.4.4", 0)
 	end if
 				
 end sub
