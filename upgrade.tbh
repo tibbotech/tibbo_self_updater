@@ -99,9 +99,9 @@ declare function device_firmware_upload_update() as no_yes
 
 declare function hex_mac(mac as string) as string
 
-declare sub set_baudrate(baudrate as baudrates)
+declare sub set_baudrate(baudrate as dword)
 declare sub start_dns(domainName as string)
-declare sub DHCP_DNS_init(interface as pl_sock_interfaces)
+declare sub DHCP_DNS_init()
 
 
 declare function get_fw_upg_state() as pl_upg_state_t
@@ -120,5 +120,5 @@ declare sub on_firmware_update_file_complete(byref current_fw_upg_state as pl_up
 'Callback when all files have been downloaded. 
 declare sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)	
 
-declare sub init_serial()
-declare sub init_receive_socket()
+declare sub init_serial(port as byte, baud as dword)
+declare sub init_receive_socket(receive_interface as string)

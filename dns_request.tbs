@@ -8,7 +8,7 @@ declare sub send_request(request as string, interface as pl_sock_interfaces)
 
 'Initializes sockets for DNS and Requests.
 
-sub DHCP_DNS_init(interface as pl_sock_interfaces)
+sub DHCP_DNS_init()
 	
 	dns_socket=sock_get("DNS")
 	dns_start(dns_socket)
@@ -48,7 +48,7 @@ end sub
 
 sub callback_dns_ok()
 
-	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", INTERFACE)
+	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", PL_SOCK_INTERFACE_NET)
 
 end sub
 

@@ -86,10 +86,8 @@ select case current_fw_upg_state.source
 		device_firmware_download_init_ble()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SOCK:
-		init_receive_socket()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SER:
-		init_serial()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case else:
 		current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_SOURCE_UNKNOWN
@@ -99,18 +97,40 @@ end select
 
 end sub
 
-sub init_serial()
+sub init_serial(port as byte, baud as dword)
 
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
-	set_baudrate(b115200)
+	set_baudrate(baud)
 	ser.flowcontrol=ENABLED
-	ser.rtsmap=PL_IO_NUM_0
-	io.num=PL_IO_NUM_0
+	if port=1 then	
+		ser.rtsmap=PL_IO_NUM_0
+		io.num=PL_IO_NUM_0
+	else if port=2 then
+		ser.rtsmap=PL_IO_NUM_1
+		io.num=PL_IO_NUM_1
+	else if port=3 then
+		ser.rtsmap=PL_IO_NUM_2
+		io.num=PL_IO_NUM_2
+	else if port=4 then
+		ser.rtsmap=PL_IO_NUM_3
+		io.num=PL_IO_NUM_3
+	end if
 	io.enabled=YES
-	ser.ctsmap=PL_IO_NUM_16_INT0
-	io.num=PL_IO_NUM_16_INT0
+	if port=1 then	
+		ser.ctsmap=PL_IO_NUM_16_INT0
+		io.num=PL_IO_NUM_16_INT0
+	else if port=2 then
+		ser.ctsmap=PL_IO_NUM_17_INT1
+		io.num=17- PL_IO_NUM_17_INT1
+	else if port=3 then
+		ser.rtsmap=PL_IO_NUM_18_INT2
+		io.num=PL_IO_NUM_18_INT2
+	else if port=4 then
+		ser.rtsmap=PL_IO_NUM_19_INT3
+		io.num=PL_IO_NUM_19_INT3
+	end if
 	io.enabled=NO
 	ser.interchardelay=0
 	ser.parity=PL_SER_PR_NONE
@@ -124,15 +144,19 @@ sub init_serial()
 
 end sub
 
-sub init_receive_socket()
+sub init_receive_socket(receive_interface as string)
 
 	dim prevsock as byte=sock.num
 	
 	sock.num=UPG_SOCK_NUM   'Receiving Socket
-	sock.targetinterface=INTERFACE
+	if receive_interface="wifi" then
+		sock.targetinterface=PL_SOCK_INTERFACE_WLN
+	else if receive_interface="ethernet" then
+		sock.targetinterface=PL_SOCK_INTERFACE_NET
+	end if
 	sock.protocol=PL_SOCK_PROTOCOL_TCP
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
-	sock.allowedinterfaces="WLN"
+	sock.allowedinterfaces="WLN,NET"
 	sock.localportlist="1000"
 	sock.rxbuffrq(16)
 	sock.txbuffrq(16) 
@@ -142,25 +166,25 @@ sub init_receive_socket()
 
 end sub
 
-sub set_baudrate(baudrate as baudrates)
+sub set_baudrate(baudrate as dword)
 	
 	select case baudrate
 		
-		case b1200:		ser.baudrate=ser.div9600*8
-		case b2400:		ser.baudrate=ser.div9600*4
-		case b4800:		ser.baudrate=ser.div9600*2 
-		case b9600:		ser.baudrate=ser.div9600   
-		case b19200:	ser.baudrate=ser.div9600/2 
-		case b38400:	ser.baudrate=ser.div9600/4
-		case b56000:	ser.baudrate=ser.div9600/5
-		case b57600:	ser.baudrate=ser.div9600/6
-		case b115200:	ser.baudrate=ser.div9600/12
-		case b128000:	ser.baudrate=ser.div9600/13 
-		case b153600:	ser.baudrate=ser.div9600/16
-		case b230400:	ser.baudrate=ser.div9600/24
-		case b256000:	ser.baudrate=ser.div9600/26
-		case b460800:	ser.baudrate=ser.div9600/48
-		case b921600:	ser.baudrate=ser.div9600/96
+		case 1200:		ser.baudrate=ser.div9600*8
+		case 2400:		ser.baudrate=ser.div9600*4
+		case 4800:		ser.baudrate=ser.div9600*2 
+		case 9600:		ser.baudrate=ser.div9600   
+		case 19200:		ser.baudrate=ser.div9600/2 
+		case 38400:		ser.baudrate=ser.div9600/4
+		case 56000:		ser.baudrate=ser.div9600/5
+		case 57600:		ser.baudrate=ser.div9600/6
+		case 115200:	ser.baudrate=ser.div9600/12
+		case 128000:	ser.baudrate=ser.div9600/13 
+		case 153600:	ser.baudrate=ser.div9600/16
+		case 230400:	ser.baudrate=ser.div9600/24
+		case 256000:	ser.baudrate=ser.div9600/26
+		case 460800:	ser.baudrate=ser.div9600/48
+		case 921600:	ser.baudrate=ser.div9600/96
 	
 	end select
 	

@@ -3,7 +3,7 @@
 #define STG_DEBUG_PRINT 1 
 #define GA1000 0
 
-#define INTERFACE PL_SOCK_INTERFACE_NET
+
 'Wi-Fi setup
 
 #define WLN_WPA 1

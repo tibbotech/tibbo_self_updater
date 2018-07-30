@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 	<html lang="en">
 
-	<head>
+	<head></br>
 		<title>Firmware Uploader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,28 +17,31 @@
 		<div id="indexpage">
 		<div align="center">
 				</br><a href="http://tibbo.com/"><img src="tibbo.svg" alt="Tibbo Technology" class="logo" width="155" height="80"/></a>
-				<div id="demo" align="center">
+				<div id="demo" align="ce	nter">
 					<div class="container">
-						<h1>Firmware Uploader</h1>
-						<h3>Choose Method to Upload Firmware</h3></br>
+						</br><h1>Firmware Uploader</h1>
+						<h2>Choose Method to Upload Firmware</h2></br>
 						<div class="row">
-							<div class="col-xs-12 col-md-3">
-								<button class="button" onclick="processClick(1)" style="width:80%";>Webpage</button>
+							<div class="col-xs-12 col-md-4">
+								<button class="button" onclick="processClick(1)" ontouchend="processClick(1)" style="width:80%";>Webpage</button>
 							</div>
-							<div class="col-xs-12 col-md-3">
-								<button class="button" onclick="processClick(2)" style="width:80%";>Serial</button>
+							<div class="col-xs-12 col-md-4">
+								<button class="button" onclick="processClick(2)" ontouchend="processClick(2)" style="width:80%";>Serial</button>
 							</div>
-							<div class="col-xs-12 col-md-3">
-								<button class="button" onclick="processClick(3)" style="width:80%";>Wi-Fi</button>
+							<div class="col-xs-12 col-md-4">
+								<button class="button" onclick="processClick(3)" ontouchend="processClick(3)" style="width:80%";>Wi-Fi</button>
 							</div>		
-							<div class="col-xs-12 col-md-3">
-								<button class="button" onclick="processClick(4)" style="width:80%";>Bluetooth</button>
+							<div class="col-xs-12 col-md-4">
+								<button class="button" onclick="processClick(5)" ontouchend="processClick(5)" style="width:80%";>Ethernet</button>
+							</div>		
+							<div class="col-xs-12 col-md-4">
+								<button class="button" onclick="processClick(4)" ontouchend="processClick(4)" style="width:80%";>Bluetooth</button>
 							</div>
 						</div>
 					</div>
 				</div>
 			
-			<h3>
+			<h3></br>
 			Module Type:
 			<?	dim moduletype as string 
 				if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then

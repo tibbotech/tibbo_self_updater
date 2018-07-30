@@ -4,9 +4,7 @@ include "upgrade.tbh"
 sub on_sys_init()
 	
 	init()
-	DHCP_DNS_init(INTERFACE)
-'	dhcp_start(INTERFACE,"","")
-
+	DHCP_DNS_init()
 	
 end sub
 
