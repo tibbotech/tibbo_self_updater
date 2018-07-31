@@ -37,11 +37,10 @@ sub init_http_sockets()
 		sock.txbuffrq(4)
 		sock.varbuffrq(4)
 		sock.redir(PL_REDIR_SOCK0 + sock.num)
-		sock.targetinterface=PL_SOCK_INTERFACE_NET
 		sock.protocol=PL_SOCK_PROTOCOL_TCP
 		sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 		sock.allowedinterfaces="NET,WLN"
-		sock.httpportlist="80"
+		sock.httpportlist="80,90"
 	next f
 	
 	sys.buffalloc()

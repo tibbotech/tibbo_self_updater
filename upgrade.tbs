@@ -123,7 +123,7 @@ sub init_serial(port as byte, baud as dword)
 		io.num=PL_IO_NUM_16_INT0
 	else if port=2 then
 		ser.ctsmap=PL_IO_NUM_17_INT1
-		io.num=17- PL_IO_NUM_17_INT1
+		io.num=PL_IO_NUM_17_INT1
 	else if port=3 then
 		ser.rtsmap=PL_IO_NUM_18_INT2
 		io.num=PL_IO_NUM_18_INT2
@@ -241,8 +241,6 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 		case PL_FW_UPG_SER:
 			ser.num=current_fw_upg_state.source_num
 			data = ser.getdata(count)
-			ser.setdata(data)
-			ser.send
 		case else:
 			data = ""
 	end select

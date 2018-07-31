@@ -1,3 +1,4 @@
+<?sys.debugprint("s="+sock.httprqstring)?>
 <!DOCTYPE html>
 <html> 
 <head>
@@ -17,6 +18,7 @@ include "upgrade.tbh"
 include "global.tbh"
 dim s, method, value, baud as string
 s=sock.httprqstring
+sys.debugprint("sock.httprqstring = " + s + "\r\n")
 dim num_of_files as byte=0
 dim b as byte=instr(1,s,"method=",1)
 sock.gethttprqstring(b+6)

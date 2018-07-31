@@ -16,7 +16,6 @@ sub DHCP_DNS_init()
 	sock.num=request_socket
 	sock.protocol=PL_SOCK_PROTOCOL_TCP
 	sock.inconmode= PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
-	sock.httpportlist="80"
 	sock.txbuffrq(2)
 	sock.rxbuffrq(2)
 	sys.buffalloc()
