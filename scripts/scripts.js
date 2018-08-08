@@ -20,7 +20,8 @@ function processClick(uploadMethod){
 	xhttp.send();	
 };
   
-var intervalSetter
+var loadStatusInterval
+var startTimerInterval
   
 function loadDoc() {
 var method  = "0"
@@ -46,7 +47,7 @@ if(document.getElementById("url")){
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) 
-	intervalSetter = setInterval(loadStatus, 1000);		 
+	loadStatusInterval = setInterval(loadStatus, 200);		 
 	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
@@ -80,7 +81,8 @@ if (this.readyState == 4 && this.status == 200) {
 
 function cancelUpgrade(){
 	
-	clearInterval(intervalSetter)
+	clearInterval(loadStatusInterval)
+	clearInterval(startTimerInterval)
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 	if (this.readyState == 4 && this.status == 200) {
@@ -89,5 +91,30 @@ function cancelUpgrade(){
 		}
 	   };
 		xhttp.open("GET", "cancelupgrade.html", true);
+		xhttp.send();	
+};	
+
+function startTimer(duration, display) {
+    startTimerInterval = setInterval(function () {
+		display.textContent = duration;
+		if (--duration < 0) {
+			clearInterval(loadStatusInterval)
+			loadIndex();
+		}
+    }, 1000);
+}
+
+function upgradeSuccessful(){
+	
+	clearInterval(loadStatusInterval)
+	clearInterval(startTimerInterval)
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+	if (this.readyState == 4 && this.status == 200) {
+		document.getElementById("demo").innerHTML =
+			this.responseText;
+		}
+	   };
+		xhttp.open("GET", "upgradesuccessful.html", true);
 		xhttp.send();	
 };	

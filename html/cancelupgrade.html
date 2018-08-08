@@ -1,18 +1,7 @@
-<script>
-
-function startTimer(duration, display) {
-    setInterval(function () {
-		display.textContent = duration;
-		if (--duration < 0) {
-			//Reload Index Page
-		}
-    }, 1000);
-}
-
-window.onload = function (){
+<h1></br></br><div>
+Upgrade cancelled</br></br>
+The system will reboot in <span id="time">30</span> seconds...
+<img src="spacer.gif" onload="
     display = document.querySelector('#time');
-    startTimer(10, display);
-};
-</script>
-
-<h1></br></br><div>The system will reboot in <span id="time">10</span> seconds...</div></br></h1>
+    startTimer(29, display);this.parentNode.removeChild(this);"/>
+</div></br></h1>

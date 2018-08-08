@@ -18,3 +18,9 @@ end if
 
 </br><button class="smallbutton" onclick="cancelUpgrade()" ontouchend="cancelUpgrade()">Cancel Upgrade</button></br>
 <button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>
+
+<?if current_fw_upg_state.fw_total_percent>=99 then?>
+	<img src="spacer.gif" onload="
+    upgradeSuccessful();
+	this.parentNode.removeChild(this);"/>
+<?end if?>
