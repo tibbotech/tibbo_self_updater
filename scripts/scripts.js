@@ -20,6 +20,7 @@ function processClick(uploadMethod){
 	xhttp.send();	
 };
   
+var intervalSetter
   
 function loadDoc() {
 var method  = "0"
@@ -45,7 +46,7 @@ if(document.getElementById("url")){
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) 
-	setInterval(loadStatus, 1000);		 
+	intervalSetter = setInterval(loadStatus, 1000);		 
 	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
@@ -77,3 +78,16 @@ if (this.readyState == 4 && this.status == 200) {
 	xhttp.send();	
 };
 
+function cancelUpgrade(){
+	
+	clearInterval(intervalSetter)
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+	if (this.readyState == 4 && this.status == 200) {
+		document.getElementById("demo").innerHTML =
+			this.responseText;
+		}
+	   };
+		xhttp.open("GET", "cancelupgrade.html", true);
+		xhttp.send();	
+};	

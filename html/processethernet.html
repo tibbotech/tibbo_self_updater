@@ -1,0 +1,14 @@
+</br><h1>Upload Through Ethernet</h1>
+<?if net.ip="1.0.0.1" then?>
+	<h4>Invalid IP address detected. Please ensure that your device has been assigned a valid IP address.</h4>	
+<?else?><h2>
+	</br><h2><ol class="center">
+		<li>Press continue to proceed to the upload page.</li>
+		<li>Open IO Ninja.</li>
+		<li>Create a new TCP Connection Socket to your device (IP Address: <green><?sock.setdata(net.ip)?></green>, Port: <green>1000</green>)</li>
+		<li>Click "File", "Browse" to the desired firmware file and press "Send".</li>
+	</ol></h2></br>
+<?end if?>
+
+<button class="smallbutton" id="ethernet" onclick="loadDoc()" ontouchend="loadDoc()">Continue</button></br>
+<button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>

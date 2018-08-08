@@ -1,0 +1,20 @@
+<?
+include "upgrade.tbh"
+if current_fw_upg_state.fw_numfiles>num_of_files then
+	num_of_files=current_fw_upg_state.fw_numfiles
+end if
+?>
+<h1>Status</h1>
+
+<h2>Number of Files: <?sock.setdata(str(num_of_files))?><br>
+	Total Size: <?sock.setdata(lstr(current_fw_upg_state.fw_totalsize))?> bytes<br><br>
+</h2>
+
+<div class="progress" style="width:40%">
+<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:<?sock.setdata(str(current_fw_upg_state.fw_total_percent))?>%">
+<?sock.setdata(str(current_fw_upg_state.fw_total_percent))?>% Complete
+</div>
+</div>
+
+</br><button class="smallbutton" onclick="cancelUpgrade()" ontouchend="cancelUpgrade()">Cancel Upgrade</button></br>
+<button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>
