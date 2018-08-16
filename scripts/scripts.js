@@ -90,7 +90,7 @@ function cancelUpgrade(){
 			this.responseText;
 		}
 	   };
-		xhttp.open("GET", "cancelupgrade.html", true);
+		xhttp.open("GET", "upgradecancelled.html", true);
 		xhttp.send();	
 };	
 
