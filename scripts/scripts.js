@@ -20,9 +20,9 @@ function processClick(uploadMethod){
 	xhttp.send();	
 };
   
-var loadStatusInterval
 var startTimerInterval
-  
+var showPercentageInterval
+
 function loadDoc() {
 var method  = "0"
 var value  = "0"
@@ -47,14 +47,14 @@ if(document.getElementById("url")){
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) 
-	loadStatusInterval = setInterval(loadStatus, 200);		 
+	loadStatus();
 	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 }
 
 function loadStatus(){
- 
+showPercentageInterval = setInterval(showPercentage, 1000);
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) {
@@ -63,8 +63,27 @@ if (this.readyState == 4 && this.status == 200) {
     }
    };
 	xhttp.open("GET", "status.html", true);
-	xhttp.send();	
+	xhttp.send();
 };
+
+
+function showPercentage(){
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var myObj = JSON.parse(this.responseText);
+			document.getElementById("percent").innerHTML = myObj.percent;
+			document.getElementById("size").innerHTML = myObj.size;
+			document.getElementById("files").innerHTML = myObj.files;
+			var currentPercent = parseInt(myObj.percent);
+			if (currentPercent>10){
+				upgradeSuccessful();
+			}
+		}
+	};
+	xmlhttp.open("GET", "showpercentage.html", true);
+	xmlhttp.send();
+}
 
 function loadIndex(){
  
@@ -81,7 +100,6 @@ if (this.readyState == 4 && this.status == 200) {
 
 function cancelUpgrade(){
 	
-	clearInterval(loadStatusInterval)
 	clearInterval(startTimerInterval)
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
