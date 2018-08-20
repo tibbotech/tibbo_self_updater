@@ -1,11 +1,12 @@
 include "global.tbh"
 include "upgrade.tbh"
+dim current_upgrade_install_state as upgrade_install_state
 
 sub on_sys_init()
 	
 	init()
 	DHCP_DNS_init()
-	
+
 end sub
 
 'Callback when the file type is read to let app know what will be updated.  
@@ -109,7 +110,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 end sub
 
 sub update_device(region as pl_wln_upgrade_regions, length as dword, checksum as dword)
-
+	
 	wln.setupgraderegion(region)
 	wln.upgrade(region,length,checksum)
 	upgrade_delay(length, region)
@@ -119,8 +120,7 @@ sub update_device(region as pl_wln_upgrade_regions, length as dword, checksum as
 	else	
 		sys.debugprint("WA2000 firmware upgrade failed\r\n")
 		pat.play("~R",PL_PAT_CANINT)
-		sys.halt
+		current_upgrade_install_state.state=ng
 	end if 
 
-end sub	
-
+end sub

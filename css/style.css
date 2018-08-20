@@ -5,7 +5,7 @@ h1 {
 
 h2 {
     color: black;
-	font-size:large
+	font-size:x-large
 }
 
 h3 {
@@ -13,15 +13,16 @@ h3 {
 	font-size: medium
 }
 
-h4 {
+red {
     color: red;
-	font-size: large
+	font-weight: bold;	
+	font-size: x-large
 }
 
 green {
     color: LimeGreen;
 	font-weight: bold;
-	font-size: large
+	font-size: x-large
 }
 
 .btn-link{
@@ -69,7 +70,7 @@ green {
   color: white;
   padding: 8px 16px;
   text-align: center;
-  font-size: medium;
+  font-size: large;
   margin: 4px 2px;
   opacity: 0.6;
   transition: 0.3s;

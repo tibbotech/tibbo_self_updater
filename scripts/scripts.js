@@ -20,9 +20,6 @@ function processClick(uploadMethod){
 	xhttp.send();	
 };
   
-var startTimerInterval
-var showPercentageInterval
-
 function loadDoc() {
 var method  = "0"
 var value  = "0"
@@ -47,14 +44,18 @@ if(document.getElementById("url")){
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) 
-	loadStatus();
+	downloadUpgrades();
 	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 }
 
-function loadStatus(){
-showPercentageInterval = setInterval(showPercentage, 1000);
+var progressTimerStarted=false
+function downloadUpgrades(){
+if (progressTimerStarted==false){
+	showProgressInterval = setInterval(showProgress, 300);
+	progressTimerStarted=true;
+}
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
 if (this.readyState == 4 && this.status == 200) {
@@ -62,26 +63,36 @@ if (this.readyState == 4 && this.status == 200) {
 		this.responseText;
     }
    };
-	xhttp.open("GET", "status.html", true);
+	xhttp.open("GET", "downloadupgrades.html", true);
 	xhttp.send();
 };
 
-
-function showPercentage(){
+function showProgress(){
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			var myObj = JSON.parse(this.responseText);
-			document.getElementById("percent").innerHTML = myObj.percent;
+			var percentage=parseInt(myObj.percent)+2 
+			document.getElementById("percent").innerHTML = percentage;
 			document.getElementById("size").innerHTML = myObj.size;
 			document.getElementById("files").innerHTML = myObj.files;
-			var currentPercent = parseInt(myObj.percent);
-			if (currentPercent>10){
-				upgradeSuccessful();
+			var elem = document.getElementById("progbar");
+			elem.style.width = percentage + "%";
+			if (percentage>=100){
+				clearInterval(showProgressInterval);
+				installUpgrades();
 			}
+			var x = document.getElementById("statusupdate");
+			var y = document.getElementById("progressb");
+			if (myObj.percent>0){
+				x.style.display = "block";
+				y.style.display = "block";
+				document.getElementById("title").innerHTML = "Downloading Firmware Updates";
+			}
+				
 		}
 	};
-	xmlhttp.open("GET", "showpercentage.html", true);
+	xmlhttp.open("GET", "showprogress.html", true);
 	xmlhttp.send();
 }
 
@@ -100,7 +111,7 @@ if (this.readyState == 4 && this.status == 200) {
 
 function cancelUpgrade(){
 	
-	clearInterval(startTimerInterval)
+	clearInterval(showProgressInterval)
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 	if (this.readyState == 4 && this.status == 200) {
@@ -112,20 +123,53 @@ function cancelUpgrade(){
 		xhttp.send();	
 };	
 
-function startTimer(duration, display) {
-    startTimerInterval = setInterval(function () {
+var rebootTimerInterval;
+
+function startRebootTimer(duration, display) {
+    rebootTimerInterval = setInterval(function () {
 		display.textContent = duration;
-		if (--duration < 0) {
-			clearInterval(loadStatusInterval)
+		if (duration == 28) {
+			progressTimerStarted=false;
+			rebootSystem();
+		}
+		if (duration-- <= 0) {
+			clearInterval(rebootTimerInterval)
 			loadIndex();
 		}
+		
     }, 1000);
 }
 
-function upgradeSuccessful(){
+function rebootSystem(){
 	
-	clearInterval(loadStatusInterval)
-	clearInterval(startTimerInterval)
+	xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("reboot").innerHTML =
+      this.responseText;
+    }
+  };
+  xhttp.open("GET", "rebootsystem.html", true);
+  xhttp.send();
+}
+
+
+function startInstallTimer() {
+	var percent=0;
+	var elem = document.getElementById("progbar");
+	startInstallInterval = setInterval(function () {
+	document.getElementById("percent").innerHTML = percent;
+	elem.style.width = percent + "%";
+	percent++;
+	if (percent >= 100) {
+		clearInterval(startInstallInterval)
+		upgradeComplete();
+		}
+    }, 700);
+}
+
+function installUpgrades(){
+	
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 	if (this.readyState == 4 && this.status == 200) {
@@ -133,6 +177,19 @@ function upgradeSuccessful(){
 			this.responseText;
 		}
 	   };
-		xhttp.open("GET", "upgradesuccessful.html", true);
+		xhttp.open("GET", "installupgrades.html", true);
+		xhttp.send();	
+};	
+
+function upgradeComplete(){
+	
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+	if (this.readyState == 4 && this.status == 200) {
+		document.getElementById("demo").innerHTML =
+			this.responseText;
+		}
+	   };
+		xhttp.open("GET", "upgradecomplete.html", true);
 		xhttp.send();	
 };	

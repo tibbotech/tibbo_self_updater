@@ -1,0 +1,11 @@
+<h1></br></br><div>
+<? 
+include "global.tbh"
+if current_upgrade_install_state.state=ok then?>
+<green>Upgrade Successful!</green>
+<?else?>
+<red>Upgrade Failed!</br></br>
+Please Check Firmware File</red>
+<?end if?>
+
+</br></br><button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>

@@ -1,14 +1,14 @@
-</br><h1>Upload Through Wi-Fi</h1></br>
+</br><h1>Upload Through Wi-Fi</h1></br></br>
 <?if wln.ip="1.0.0.1" then?>
-	<h4>Invalid IP address detected. Please ensure that your Wi-Fi module is connected correctly and that it has been assigned a valid IP address.</h4>	
+	<red>Invalid IP address detected. Please ensure that your Wi-Fi module is connected correctly and that it has been assigned a valid IP address.</red>	
 <?else?>
 	<h2><ol class="center">
 		<li>Press continue to proceed to the upload page.</li>
 		<li>Open IO Ninja.</li>
 		<li>Create a new TCP Connection Socket to your Wi-Fi module (IP Address:<green> <?sock.setdata(wln.ip)?></green>, Port: <green>1000</green>)</li>
 		<li>Click "File", "Browse" to the desired firmware file and press "Send".</li>
-	</ol><h2></br>
+	</ol><h2>
 <?end if?>
 
-</br><button class="smallbutton" id="wifi" onclick="loadDoc()" ontouchend="loadDoc()">Continue</button></br>
+</br></br><button class="smallbutton" id="wifi" onclick="loadDoc()" ontouchend="loadDoc()">Continue</button></br>
 <button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>

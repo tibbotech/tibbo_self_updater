@@ -125,10 +125,10 @@ sub init_serial(port as byte, baud as dword)
 		ser.ctsmap=PL_IO_NUM_17_INT1
 		io.num=PL_IO_NUM_17_INT1
 	else if port=3 then
-		ser.rtsmap=PL_IO_NUM_18_INT2
+		ser.ctsmap=PL_IO_NUM_18_INT2
 		io.num=PL_IO_NUM_18_INT2
 	else if port=4 then
-		ser.rtsmap=PL_IO_NUM_19_INT3
+		ser.ctsmap=PL_IO_NUM_19_INT3
 		io.num=PL_IO_NUM_19_INT3
 	end if
 	io.enabled=NO

@@ -53,3 +53,15 @@ const ALT_NET_NETMASK="255.255.255.0"
 const ALT_WLN_IP="192.168.1.41"
 const ALT_WLN_GATEWAY_IP="192.168.1.1"
 const ALT_WLN_NETMASK="255.255.255.0"
+
+
+type upgrade_install_state
+	state as ok_ng
+end type
+
+type page_loaded_state
+	state as boolean
+end type
+
+declare current_upgrade_install_state as upgrade_install_state
+declare page_loaded as page_loaded_state

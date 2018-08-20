@@ -12,6 +12,7 @@ sub init()
 '	if connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)<>WLN_STATUS_OK then
 '		sys.halt
 '	end if	
+
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
 	
 	fd.formatj((fd.availableflashspace/4)*3,10,100)
