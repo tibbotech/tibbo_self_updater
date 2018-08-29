@@ -1,6 +1,8 @@
 <?
 include "upgrade.tbh"
 include "global.tbh"
+dim prevsock as byte=sock.num
+dim download_url as url
 dim s, method, value, baud as string
 s=sock.httprqstring
 sys.debugprint("sock.httprqstring = " + s + "\r\n")
@@ -18,25 +20,33 @@ b=instr(1,s," HTTP/1.1",1)
 baud = sock.gethttprqstring(b-1)
 baud = right(baud,len(baud)-6)
 
-if method="web" then
-	sys.debugprint(value)
-	start_dns(value)
-else if method="wifi" then
-	init_receive_socket(method)
-	device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
-	upload_started=true
-else if method="ethernet" then
-	init_receive_socket(method)
-	device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
-	upload_started=true
-else if method="ser" then
-	init_serial(value, baud)
-	value=val(value)-1
-	device_firmware_upload_async(PL_FW_UPG_SER, value)
-	upload_started=true
-else if method="ble" then
-	device_firmware_upload_async(PL_FW_UPG_BLE, 0)
-	upload_started=true
-end if
+select case method
+	case "web":
+		start_dns(value)
+		if http_req_state.state<>dns_acquired then
+			doevents
+		end if
+		init_web_receive_socket()
+		device_firmware_upload_async(PL_FW_UPG_WEB, 0)
+		upload_started=true
+		download_url.firmware_url=value
+	case "wifi":
+		init_receive_socket(method)
+		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
+		upload_started=true
+	case "ethernet":
+		init_receive_socket(method)
+		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
+		upload_started=true
+	case "ser":
+		init_serial(value, baud)
+		value=val(value)-1
+		device_firmware_upload_async(PL_FW_UPG_SER, value)
+		upload_started=true
+	case "ble":
+		device_firmware_upload_async(PL_FW_UPG_BLE, 0)
+		upload_started=true
+end select
 
+sock.num=prevsock
 ?>
