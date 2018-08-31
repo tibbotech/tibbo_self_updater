@@ -1,12 +1,12 @@
 include "global.tbh"
 include "upgrade.tbh"
 dim current_upgrade_install_state as upgrade_install_state
+dim socket_number as socket_assignment
 
 sub on_sys_init()
 	
 	init()
-	DHCP_DNS_init()
-
+	
 end sub
 
 'Callback when the file type is read to let app know what will be updated.  

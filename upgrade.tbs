@@ -85,6 +85,8 @@ select case current_fw_upg_state.source
 	case PL_FW_UPG_BLE:
 		device_firmware_download_init_ble()
 		current_fw_upg_state.state = PL_FW_READ_HEADER
+	case PL_FW_UPG_WEB:
+		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SOCK:
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SER:
@@ -148,7 +150,7 @@ sub init_receive_socket(receive_interface as string)
 
 	dim prevsock as byte=sock.num
 	
-	sock.num=UPG_SOCK_NUM   'Receiving Socket
+	sock.num=socket_number.upgrade_socket 'Receiving Socket
 	if receive_interface="wifi" then
 		sock.targetinterface=PL_SOCK_INTERFACE_WLN
 	else if receive_interface="ethernet" then
@@ -169,7 +171,6 @@ end sub
 sub set_baudrate(baudrate as dword)
 	
 	select case baudrate
-		
 		case 1200:		ser.baudrate=ser.div9600*8
 		case 2400:		ser.baudrate=ser.div9600*4
 		case 4800:		ser.baudrate=ser.div9600*2 
@@ -185,7 +186,6 @@ sub set_baudrate(baudrate as dword)
 		case 256000:	ser.baudrate=ser.div9600/26
 		case 460800:	ser.baudrate=ser.div9600/48
 		case 921600:	ser.baudrate=ser.div9600/96
-	
 	end select
 	
 end sub
@@ -198,8 +198,13 @@ function device_firmware_read_32_uint() as dword
 		case PL_FW_UPG_BLE:		   	
 			l=bt.getdata(4)
 			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
+		case PL_FW_UPG_WEB:
+			sock.num=socket_number.http_socket
+			s=sock.peekdata(255)
+			l=sock.getdata(4)
+			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 
 		case PL_FW_UPG_SOCK:
-			sock.num=UPG_SOCK_NUM
+			sock.num=socket_number.upgrade_socket
 			s=sock.peekdata(255)
 			l=sock.getdata(4)
 			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
@@ -216,10 +221,13 @@ end function
 function device_firmware_bytes_available() as dword
 	
 	select case current_fw_upg_state.source
+		case PL_FW_UPG_WEB:
+			sock.num=socket_number.http_socket
+			device_firmware_bytes_available=sock.rxlen
 		case PL_FW_UPG_BLE:		   	
 			device_firmware_bytes_available = bt.rxlen							 
 		case PL_FW_UPG_SOCK:
-			sock.num=UPG_SOCK_NUM
+			sock.num=socket_number.upgrade_socket
 			device_firmware_bytes_available=sock.rxlen
 		case PL_FW_UPG_SER:
 			ser.num=current_fw_upg_state.source_num
@@ -233,10 +241,13 @@ end function
 sub device_firmware_read_data(byref data as string, byref count as dword)
 
 	select case current_fw_upg_state.source
+		case PL_FW_UPG_WEB:
+			sock.num=socket_number.http_socket
+			data = sock.getdata(count)	
 		case PL_FW_UPG_BLE:		   	
 			data = bt.getdata(count)							 
 		case PL_FW_UPG_SOCK:
-			sock.num=UPG_SOCK_NUM
+			sock.num=socket_number.upgrade_socket
 			data = sock.getdata(count)	
 		case PL_FW_UPG_SER:
 			ser.num=current_fw_upg_state.source_num
@@ -410,7 +421,11 @@ sub device_firmware_get_fw_block()
 end sub
 
 function device_firmware_upload_update() as no_yes
-		
+
+'	if sock.num<>socket_number.http_socket and sock.num<>socket_number.upgrade_socket then
+'		exit function
+'	end if
+	
 	device_firmware_upload_update = YES
 	select case current_fw_upg_state.state
 		case PL_FW_UPG__INIT:

@@ -3,86 +3,146 @@ include "upgrade.tbh"
 public dim dns_socket, request_socket, upgrade_socket as byte
 dim dns_started as boolean=false
 dim s as string
-declare sub start_dns(domainName as string)
-declare sub send_request(request as string, interface as pl_sock_interfaces)
+dim http_req_state as current_http_req_state
+
 
 'Initializes sockets for DNS and Requests.
-
 sub DHCP_DNS_init()
 	
-	dns_socket=sock_get("DNS")
-	dns_start(dns_socket)
-	request_socket=sock_get("REQ")
-	sock.num=request_socket
+	dns_start(socket_number.dns_socket)
+	sock.num=socket_number.http_socket
 	sock.protocol=PL_SOCK_PROTOCOL_TCP
 	sock.inconmode= PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
-	sock.txbuffrq(2)
-	sock.rxbuffrq(2)
+	sock.txbuffrq(4)
+	sock.rxbuffrq(32)
 	sys.buffalloc()
-		
+
 end sub
+
 
 'DNS finds IP address for specified domain name. Assigns this IP as the target IP for the Request socket.
+sub start_dns(url as string)
 
-sub start_dns(domainName as string)
-	
-	dns_started=true
 	sock.num=dns_socket
-	dns_query(domainName)	
-	
+	get_path(url)
+	dns_query("www." + get_domain_name(url))	
+
 end sub
 
+
+'Returns the domain name section of a given URL
+function get_domain_name(url as string) as string
+
+	if left(url, 4) = "www." then
+		get_domain_name=right(url,len(url)-4)
+	end if
+	dim b as byte=instr(1,get_domain_name,".com",1)
+	get_domain_name=left(get_domain_name,b+3)
+
+end function
+
+
+'Returns the path section of a given URL
+function get_path(url as string) as string
+
+	dim b as byte=instr(1,url,".com",1)
+	get_path=right(url,len(url)-b-3)
+
+end function
+
+
 sub callback_dns_answer_acquired(return_type as en_dns_return_type, byref return_string as string)
-	
+
 	dim target_ip as string
-	
 	if(return_type=EN_DNS_RET_IP) then
 		target_ip = ddstr(return_string)
-		sock.num=request_socket
+		sock.num=socket_number.http_socket
 		sock.targetip=target_ip
 		sock.targetport=80
 	end if
-	
+
 end sub
+
 
 sub callback_dns_ok()
 
-	send_request("GET /downloads/open/tios_int_rel/test.txt HTTP/1.1\x0d\x0aHost: tibbo.com\x0d\x0a\x0d\x0a", PL_SOCK_INTERFACE_NET)
+	http_req_state.state=dns_acquired
 
 end sub
 
-sub send_request(request as string, interface as pl_sock_interfaces) 
 
-	sock.num=request_socket
+sub send_request(interface as pl_sock_interfaces) 
+
+	if download_url.firmware_url="" then
+		exit sub
+	end if
+	dim request as string="GET " + get_path(download_url.firmware_url) + " HTTP/1.1\x0d\x0aHost: " + get_domain_name(download_url.firmware_url) + "\x0d\x0a\x0d\x0a"
+	sock.num=socket_number.http_socket
 	sock.targetinterface=interface
 	sock.connect()
-	
 	while sock.statesimple<>PL_SSTS_EST
 		doevents
 	wend
-	
 	sock.setdata(request)
 	sock.send()
 	sys.debugprint(request)
-
+	download_url.firmware_url=""
+	
 end sub
 
-sub on_sock_data_arrival()
 
+sub remove_http_headers()
+	
+	if http_req_state.state<>dns_acquired or sock.num<>socket_number.http_socket then
+		exit sub
+	end if
+	dim data as string
+	dim startp as byte	
+	while sock.rxlen>0
+		data=sock.peekdata(255)
+		startp=instr(1,data,"\x0d\x0a\x0d\x0a", 1)
+		if startp=0 then
+			sock.getdata(230)
+		else 
+			sock.getdata(startp+3)
+			http_req_state.state=headers_removed
+			sys.debugprint("Headers removed")
+			exit sub
+		end if
+	wend
+	
+end sub
+
+
+sub on_sock_data_arrival()
+	
 	#if GA1000 
-	wln_proc_data()
+		wln_proc_data()
 	#endif
 	dhcp_proc_data()
 	dns_proc_data()
-	
-	if dns_started=true and sock.num=request_socket then
-		
-		get_http_headers()
-	
-	end if
-
-	if upload_started=true and sock.num=UPG_SOCK_NUM then
+	remove_http_headers()
+	if sock.num=socket_number.http_socket or sock.num=socket_number.upgrade_socket then
 		device_firmware_upload_update()
 	end if
-		
+	
+
+	
+end sub
+
+
+sub init_web_receive_socket()
+	
+	dim prevsock as byte=sock.num
+	sock.num=socket_number.upgrade_socket
+	sock.targetinterface=PL_SOCK_INTERFACE_NET
+	sock.protocol=PL_SOCK_PROTOCOL_TCP
+	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
+	sock.allowedinterfaces="WLN,NET"
+	sock.localportlist="1000"
+	sock.rxbuffrq(16)
+	sock.txbuffrq(16) 
+	sys.buffalloc
+	sock.num=prevsock
+	
 end sub

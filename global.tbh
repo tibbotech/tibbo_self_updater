@@ -27,17 +27,15 @@ include "dns\trunk\dns.tbh"
 'Functions
 
 declare sub init()
+declare sub init_io()
+declare sub init_fd()
+declare sub init_web_receive_socket()
 declare sub init_http_sockets()
+declare sub init_sockets()
 declare function upload_file() as ok_ng
-declare function get_response() as string
-declare function get_key() as string
-declare function get_value() as string
 declare sub update_state()
-declare sub assign_header_values()
+declare sub get_method_value_baud()
 declare sub skip_http_headers(request_socket as byte)
-declare sub get_http_headers()
-declare function get_header_value(header as string) as string
-declare function remove_header_get_filename() as string
 declare function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
 declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
 declare sub delay_ms(ms as dword)
@@ -45,6 +43,12 @@ declare sub reset_wln()
 declare sub init_wln_io()
 declare sub update_device(region as pl_wln_upgrade_regions, length as dword, checksum as dword)
 declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
+declare sub start_dns(domainName as string)
+declare sub send_request(interface as pl_sock_interfaces)
+
+
+declare function get_path(url as string) as string
+declare function get_domain_name(url as string) as string
 
 const DHCP_FAIL_LIMIT=1 'max number of DHCP retry "batches"
 const ALT_NET_IP="192.168.1.40"
@@ -59,9 +63,27 @@ type upgrade_install_state
 	state as ok_ng
 end type
 
-type page_loaded_state
-	state as boolean
+enum http_req_states
+	dns_not_acquired,
+	dns_acquired,
+	headers_removed	
+end enum
+
+type current_http_req_state
+	state as http_req_states
 end type
 
+type socket_assignment
+	dns_socket as byte
+	upgrade_socket as byte
+	http_socket as byte
+end type
+
+type url
+	firmware_url as string
+end type
+
+declare socket_number as socket_assignment
 declare current_upgrade_install_state as upgrade_install_state
-declare page_loaded as page_loaded_state
+declare http_req_state as current_http_req_state
+declare download_url as url

@@ -7,30 +7,17 @@ sub init()
 
 	stg_start()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
-	init_http_sockets()
-
-'	if connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)<>WLN_STATUS_OK then
-'		sys.halt
-'	end if	
-
+	connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
-	
-	fd.formatj((fd.availableflashspace/4)*3,10,100)
-	fd.mount
-	
-	io.num=PL_IO_NUM_46
-	io.enabled=YES
-	io.num=PL_IO_NUM_47
-	io.enabled=YES
-	io.num=PL_IO_NUM_48
-	io.enabled=YES
+	init_fd()
+	init_io()
+	init_sockets()
+	DHCP_DNS_init()
 
 end sub
 
-'Initializes HTTP sockets
-
-sub init_http_sockets()
-
+sub init_sockets()
+	
 	dim f as byte
 
 	for f=8 to 15
@@ -45,8 +32,34 @@ sub init_http_sockets()
 	next f
 	
 	sys.buffalloc()
+		
+	socket_number.dns_socket=sock_get("DNS")
+	socket_number.http_socket=sock_get("REQ")
+	socket_number.upgrade_socket=sock_get("UPG")
+	
+end sub
+
+sub init_fd()
+	
+	fd.formatj((fd.availableflashspace/4)*3,10,100)
+	fd.mount
 
 end sub
+
+sub init_io()
+
+	io.num=PL_IO_NUM_46
+	io.enabled=YES
+	io.num=PL_IO_NUM_47
+	io.enabled=YES
+	io.num=PL_IO_NUM_48
+	io.enabled=YES
+	
+end sub
+
+
+'Initializes HTTP sockets
+
 
 'Connects to the Wi-Fi Access Point
 
@@ -127,11 +140,17 @@ sub callback_dhcp_failure(interface as pl_sock_interfaces,failure_code as en_dhc
 	
 end sub
 
+sub on_button_pressed()
+
+'	send_request(download_url.firmware_url, PL_SOCK_INTERFACE_NET)
+	
+end sub
 sub on_sys_timer()
 	
 	wln_proc_timer()
 	dhcp_proc_timer()
 	dns_proc_timer()
+	send_request(PL_SOCK_INTERFACE_NET)
 	
 end sub
 
