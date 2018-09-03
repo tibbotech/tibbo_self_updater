@@ -1,7 +1,9 @@
 #define DHCP_DEBUG_PRINT 1 
 #define DNS_DEBUG_PRINT 1 
 #define STG_DEBUG_PRINT 1 
-#define GA1000 0
+#define WLN_WPA 1 
+#define WLN_ENABLED 1 
+#define GA1000 1
 
 
 'Wi-Fi setup
@@ -19,7 +21,7 @@
 
 include "sock\trunk\sock.tbh"
 include "settings\trunk\settings.tbh" 'this lib is necessary to save pre-shared master key
-includepp "settings.xtxt"
+includepp "resources\settings.xtxt"
 include "wln\trunk\wln.tbh"
 include "dhcp\trunk\dhcp.tbh"
 include "dns\trunk\dns.tbh"
@@ -28,6 +30,7 @@ include "dns\trunk\dns.tbh"
 
 declare sub init()
 declare sub init_io()
+declare sub get_module_type()
 declare sub init_fd()
 declare sub init_web_receive_socket()
 declare sub init_http_sockets()

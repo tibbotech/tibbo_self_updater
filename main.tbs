@@ -25,7 +25,7 @@ end sub
 
 sub on_firmware_update_percent_change(byref current_fw_upg_state as pl_upg_state_t) 
 
-'	sys.debugprint("Data has been written to flash\r\n")
+	sys.debugprint("Data has been written to flash\r\n")
 	
 end sub
 
@@ -93,6 +93,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 						
 		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS then
 		
+			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
 			sys.debugprint("UNCOMPRESSED_TIOS\r\n")
 			
 		else if current_fw_upg_state.fw_types(f)=COMPRESSED_TIOS_APP then
@@ -101,6 +102,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 						
 		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS_APP then
 		
+			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
 			sys.debugprint("UNCOMPRESSED_TIOS_APP\r\n")
 		
 		end if

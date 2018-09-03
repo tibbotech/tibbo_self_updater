@@ -16,6 +16,8 @@ sub init()
 
 end sub
 
+
+
 sub init_sockets()
 	
 	dim f as byte

@@ -422,10 +422,6 @@ end sub
 
 function device_firmware_upload_update() as no_yes
 
-'	if sock.num<>socket_number.http_socket and sock.num<>socket_number.upgrade_socket then
-'		exit function
-'	end if
-	
 	device_firmware_upload_update = YES
 	select case current_fw_upg_state.state
 		case PL_FW_UPG__INIT:

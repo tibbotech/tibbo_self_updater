@@ -38,27 +38,27 @@
 					</div>
 				</div>
 			<h3></br>
-			Module Type:
+			Module Type: <b>
 			<?	dim moduletype as string 
-				if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then
+				if wln.enabled=NO then
+					moduletype = "No Wi-Fi Module Detected"
+				else if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then
 					moduletype = "WA2000"
 				else if wln.getmoduletype=PL_WLN_MODULE_TYPE_GA1000 then
 					moduletype = "GA1000"
-				else 
-					moduletype = "No Wi-Fi Module Detected"
 				end if
 				sock.setdata(moduletype)
-				sock.send?><br>
+				sock.send?></b><br>
 				<?if wln.getmoduletype=PL_WLN_MODULE_TYPE_WA2000 then?>
-				Firmware Version:<?sock.setdata(wln.fwversion)sock.send?><br>
-				WA2000 Monitor Version:<?sock.setdata(wln.monversion)sock.send?><br>
+				Firmware Version: <b><?sock.setdata(wln.fwversion)sock.send?></b><br>
+				WA2000 Monitor Version: <b><?sock.setdata(wln.monversion)sock.send?></b><br>
 				<?end if?>
-				Monitor Version:<?sock.setdata(sys.monversion)sock.send?><br>
-				TIOS Version:<?
+				Monitor Version: <b><?sock.setdata(sys.monversion)sock.send?></b><br>
+				TIOS Version: <b><?
 				dim s as string=sys.version 
 				s=mid(s,2,len(s)-2)
 				sock.setdata(s)
-				sock.send?><br>
+				sock.send?></b><br>
 			</h3>
 		</div>	
 		</div>	
