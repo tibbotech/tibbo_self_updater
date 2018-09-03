@@ -80,9 +80,17 @@ function showProgress() {
 			elem.style.width = myObj.percent + "%";
 			var x = document.getElementById("statusupdate");
 			var y = document.getElementById("progressb");
+			var z = document.getElementById("percentupdate");
+			if (myObj.percent >= 100) {
+				x.style.display = "none";
+				clearInterval(showProgressInterval);
+				startInstallTimer();
+			}
+
 			if (myObj.percent > 0 && myObj.percent < 100) {
 				x.style.display = "block";
 				y.style.display = "block";
+				z.style.display = "block";
 				document.getElementById("title").innerHTML = "Downloading firmware upgrades...";
 			}
 
