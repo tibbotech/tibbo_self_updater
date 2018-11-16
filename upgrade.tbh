@@ -58,6 +58,7 @@ type pl_upg_state_t
 	 source as enum PL_FW_UPG_SOURCE
 	 fw_fail_reason as PL_FW_UPG_FAIL_REASON
 	 fw_totalsize as dword
+	 fw_total_remaining as dword
 	 fw_numfiles as byte
 	 fw_types(MAX_NUM_FILE_UPG) as byte
 	 fw_lengths(MAX_NUM_FILE_UPG) as float

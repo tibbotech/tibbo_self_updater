@@ -6,6 +6,6 @@ end if
 ?>
 {
     "percent":"<?sock.setdata(str(current_fw_upg_state.fw_total_percent))?>",
-    "size":"<?sock.setdata(str(current_fw_upg_state.fw_totalsize))?>",
+    "size":"<?sock.setdata(lstr(current_fw_upg_state.fw_totalsize))?>",
     "files":"<?sock.setdata(str(num_of_files))?>"
 }

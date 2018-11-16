@@ -24,8 +24,8 @@ end sub
 'Callback when data has been written to flash.
 
 sub on_firmware_update_percent_change(byref current_fw_upg_state as pl_upg_state_t) 
-
-	sys.debugprint("Data has been written to flash\r\n")
+	dim percent as string =   stri (current_fw_upg_state.fw_total_percent)
+	sys.debugprint("Receiving firmware... "+percent+"%"+chr(&h0a)+chr(&h0D))
 	
 end sub
 
@@ -71,43 +71,71 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 
 	sys.debugprint("All files have been downloaded.\r\n")
 
-	dim f as byte
-		
-	for f=0 to current_fw_upg_state.fw_receivedfiles
-		
-		if current_fw_upg_state.fw_types(f)=WA2000_MON then
-		
-			update_device(PL_WLN_UPGRADE_REGION_MONITOR, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
-		
-			sys.debugprint("WA2000_MON\r\n")	
-			
-		else if current_fw_upg_state.fw_types(f)=WA2000_APP then
-		
-			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
-			
-			sys.debugprint("WA2000_APP\r\n")
-				
-		else if current_fw_upg_state.fw_types(f)=COMPRESSED_TIOS then
-		
-			sys.debugprint("COMPRESSED_TIOS\r\n")
-						
-		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS then
-		
-			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
-			sys.debugprint("UNCOMPRESSED_TIOS\r\n")
-			
-		else if current_fw_upg_state.fw_types(f)=COMPRESSED_TIOS_APP then
+	dim i as byte
+	dim module_type as pl_wln_module_types
+	dim upg_state as pl_upg_state_t
+	dim write_delay_secs as long
 	
-			sys.debugprint("COMPRESSED_TIOS_APP\r\n")
-						
-		else if current_fw_upg_state.fw_types(f)=UNCOMPRESSED_TIOS_APP then
-		
-			update_device(PL_WLN_UPGRADE_REGION_MAIN, current_fw_upg_state.fw_lengths(f), current_fw_upg_state.fw_checksums(f))
-			sys.debugprint("UNCOMPRESSED_TIOS_APP\r\n")
-		
-		end if
-			
-	next f
+	upg_state=get_fw_upg_state()
+	if upg_state.state <> PL_FW_UPG_COMPLETE then
+		exit sub
+	end if
+	if wln.enabled =YES then  
+		for i=0 to MAX_NUM_FILE_UPG-1
+			if upg_state.fw_types(i)=WA2000_MON then
+				sys.debugprint("Upgrading WA2000_MON"+chr(&h0A)+chr(&h0D))
+				wln.disable
+				wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)
+				wln.upgrade( PL_WLN_UPGRADE_REGION_MONITOR, upg_state.fw_lengths(i), upg_state.fw_checksums(i))
+				'We can write 8 blocks per second at worse case. in reality we dont need a delay here at this stage + time to check the firmware integrity
+				write_delay_secs = (upg_state.fw_lengths(i)/4096 + 1)/8   + 1 + (upg_state.fw_lengths(i)/4096 + 1)/29 +1
+				sys.debugprint("Delay for write: " + lstri(write_delay_secs))
+				while write_delay_secs > 0		
+					sys.debugprint("Upgrading WA2000_MON"+str(write_delay_secs)+chr(&h0A)+chr(&h0D))
+					delay_ms(1000)
+					write_delay_secs = write_delay_secs -1
+				wend
+				if wln.waitforupgradecompletion()=NG then
+					sys.debugprint("Upgrading WA2000_MON Failed"+chr(&h0A)+chr(&h0D))
+					
+					exit sub
+				end if
+			end if
+		next i
+
+		for i=0 to MAX_NUM_FILE_UPG-1
+			if upg_state.fw_types(i)=WA2000_APP then
+				sys.debugprint("Upgrading WA2000_APP"+chr(&h0A)+chr(&h0D))					
+				'To reset the app we need to enter monitor mode on the module. 
+				wln.disable
+				'Reset WLN Here
+				'there is a dedicated reset line
+	'			io.num=WLN_RST
+				io.num=PL_IO_NUM_51
+				io.state=LOW
+				delay_ms(1)
+				io.state=HIGH
+				module_type = wln.getmoduletype()  'Causes  the device to enter monitor mode. 			
+				delay_ms(1000)	'delay to enter monitor mode. 
+				wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MAIN)
+				wln.upgrade(PL_WLN_UPGRADE_REGION_MAIN, upg_state.fw_lengths(i), upg_state.fw_checksums(i))			
+				'We can write 8 blocks per second at worse case. in reality we dont need a delay here at this stage + time to check the firmware integrity
+				write_delay_secs = ((upg_state.fw_lengths(i)+430080)/4096 + 1)/8   + 1  + (upg_state.fw_lengths(i)/4096 + 1)/29 +1
+				sys.debugprint("Delay for write: " + lstri(write_delay_secs))
+				while write_delay_secs > 0	
+					sys.debugprint("Upgrading WA2000_APP"+  str(write_delay_secs)+chr(&h0A)+chr(&h0D))	
+					delay_ms(1000)
+					write_delay_secs = write_delay_secs -1
+				wend
+				if wln.waitforupgradecompletion()=NG then
+					sys.debugprint("Upgrading WA2000_APP Failed"+chr(&h0A)+chr(&h0D))
+					exit sub
+				end if			
+			end if
+		next i
+	end if 
+	sys.debugprint("Upgrading TIOS_APP"+chr(&h0A)+chr(&h0D))
+	fd.copyfirmwarelzo(YES)  'Upgrades the firmware.	
 	
 end sub
 

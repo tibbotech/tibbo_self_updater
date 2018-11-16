@@ -4,8 +4,7 @@ include "upgrade.tbh"
 dim upload_started as boolean = false
 dim current_fw_upg_state as pl_upg_state_t
 dim isBtConnected as boolean = false
-dim fw_total_remaining as dword
-
+dim fw_buffer as string(128)=""
 sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	dim i as integer 
  
@@ -27,7 +26,7 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	current_fw_upg_state.fw_sector =  0
 	current_fw_upg_state.fw_page  = 0
 	current_fw_upg_state.fw_checksum =0 	
-	fw_total_remaining=0
+	current_fw_upg_state.fw_total_remaining=0
 	
 end sub
 
@@ -100,7 +99,15 @@ end select
 end sub
 
 sub init_serial(port as byte, baud as dword)
-
+	if port = 1 then
+		 ser.num=0
+	else if port = 2 then 
+		ser.num = 1 
+	else if port = 3 then 
+		ser.num = 2 
+	else if port = 4 then 
+		ser.num = 3
+	end if
 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
@@ -263,7 +270,7 @@ sub device_firmware_read_header()
 	if device_firmware_bytes_available() >= 8 then	
 		current_fw_upg_state.fw_numfiles = device_firmware_read_32_uint()
 		current_fw_upg_state.fw_totalsize = device_firmware_read_32_uint()
-		fw_total_remaining = current_fw_upg_state.fw_totalsize
+		current_fw_upg_state.fw_total_remaining = current_fw_upg_state.fw_totalsize
 		if current_fw_upg_state.fw_numfiles > 0 then
 			current_fw_upg_state.state = PL_FW_UPG_READ_FW_TYPE		
 		else 
@@ -329,95 +336,104 @@ sub device_firmware_read_chekcsum()
 end sub
 
 sub device_firmware_write_tios_app(fw as string) 
-
-	fd.buffernum=0   		
+	fd.buffernum=0
+	
 	if (current_fw_upg_state.fw_page mod 2 ) = 0 then
-		fd.setbuffer(fw , 0)  				
+		if current_fw_upg_state.fw_remaining=0 then
+			fw=fw+strgen(FW_UPG_BLK_LEN-len(fw),"\x00")
+			fw_buffer=fw
+			fw=""
+			goto set_sector
+		else
+			fw_buffer=fw
+		end if
 	else 
-		fd.setbuffer(fw, 128)  				
-		fd.setsector(DISK_SIZE+current_fw_upg_state.fw_sector)			
-		fd.buffernum=1
-		fd.getsector(DISK_SIZE+current_fw_upg_state.fw_sector)				 				
+set_sector:
+		if current_fw_upg_state.fw_remaining=0 then
+			fw=fw+strgen(FW_UPG_BLK_LEN-len(fw),"\x00")
+		end if
+		fd.flush()
+		fd.setbuffer(fw_buffer , 0)
+		fd.setbuffer(fw, 128) 	
+		 
+		fd.setsector(current_fw_upg_state.fw_sector)			 				
 		current_fw_upg_state.fw_sector = current_fw_upg_state.fw_sector + 1
-	end if		
-		
+	end if
+
 end sub
 
 sub device_firmware_write_wa2000_mon_app(fw as string) 			
 	wln.writeflashpage(fw)	
 end sub
 
-sub device_firmware_get_fw_block()
-
+sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 	dim fw as string
 	dim percent_complete, total_percent as byte
 	dim i as dword
-	if current_fw_upg_state.fw_remaining  >= FW_UPG_BLK_LEN then   'We have remaining pages for the firmware update
+	if dev_fw_upg_state.fw_remaining  >= FW_UPG_BLK_LEN then   'We have remaining pages for the firmware update
 		if device_firmware_bytes_available()  >= FW_UPG_BLK_LEN then			
 			device_firmware_read_data(fw,FW_UPG_BLK_LEN)
 		end if
 	else 'Last block of firmware data
-		if device_firmware_bytes_available()  >= current_fw_upg_state.fw_remaining then					
-			device_firmware_read_data(fw,current_fw_upg_state.fw_remaining)
+		if device_firmware_bytes_available()  >= dev_fw_upg_state.fw_remaining then					
+			device_firmware_read_data(fw,dev_fw_upg_state.fw_remaining)
 		end if 
 	end if 
 	
 	if len(fw) > 0  then 		
 		dim csdata(128) as byte = fw		
+		
+		dev_fw_upg_state.fw_remaining = dev_fw_upg_state.fw_remaining - len(fw)
+		dev_fw_upg_state.fw_total_remaining = dev_fw_upg_state.fw_total_remaining - len(fw)
 		for i = 0 To len(fw)-1
-			 current_fw_upg_state.fw_checksum  = current_fw_upg_state.fw_checksum + csdata(i) 
+			 dev_fw_upg_state.fw_checksum  = dev_fw_upg_state.fw_checksum + csdata(i) 
 		next i
 		
-		select case current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
+		select case dev_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
 		case COMPRESSED_TIOS_APP:
-			device_firmware_write_tios_app(fw)
+			device_firmware_write_tios_app( fw)
 		case WA2000_MON:
-			device_firmware_write_wa2000_mon_app(fw)
+			device_firmware_write_wa2000_mon_app( fw)
 		case WA2000_APP:
-			device_firmware_write_wa2000_mon_app(fw)
+			device_firmware_write_wa2000_mon_app( fw)
 		case else:
 			'Ignore the file.
 		end select
 		
-		on_firmware_update_data_received(current_fw_upg_state)
-		current_fw_upg_state.fw_remaining = current_fw_upg_state.fw_remaining - len(fw)
-		fw_total_remaining = fw_total_remaining - len(fw)
-		current_fw_upg_state.fw_page = current_fw_upg_state.fw_page + 1
-		percent_complete = 100 - 100 * (current_fw_upg_state.fw_remaining/current_fw_upg_state.fw_lengths(current_fw_upg_state.fw_currentfile))
-		total_percent = 100 - (100 * fw_total_remaining/current_fw_upg_state.fw_totalsize)
-		if percent_complete > current_fw_upg_state.fw_percent or total_percent > current_fw_upg_state.fw_total_percent then
-			current_fw_upg_state.fw_percent  = percent_complete
-			current_fw_upg_state.fw_total_percent = total_percent
-			on_firmware_update_percent_change(current_fw_upg_state)
+		on_firmware_update_data_received(dev_fw_upg_state)
+		dev_fw_upg_state.fw_page = dev_fw_upg_state.fw_page + 1
+		percent_complete = 100 - 100 * (dev_fw_upg_state.fw_remaining/dev_fw_upg_state.fw_lengths(dev_fw_upg_state.fw_currentfile))
+		total_percent = 100 - (100 * dev_fw_upg_state.fw_total_remaining/dev_fw_upg_state.fw_totalsize)
+		if percent_complete > dev_fw_upg_state.fw_percent or total_percent > dev_fw_upg_state.fw_total_percent then
+			dev_fw_upg_state.fw_percent  = percent_complete
+			dev_fw_upg_state.fw_total_percent = total_percent
+			on_firmware_update_percent_change(dev_fw_upg_state)
 		end if
 	
 	end if
-	if current_fw_upg_state.fw_remaining = 0 then
+	if dev_fw_upg_state.fw_remaining = 0 then
    
-		current_fw_upg_state.fw_checksum  = not current_fw_upg_state.fw_checksum 
-		current_fw_upg_state.fw_checksum = current_fw_upg_state.fw_checksum + 1
+		dev_fw_upg_state.fw_checksum  = not dev_fw_upg_state.fw_checksum 
+		dev_fw_upg_state.fw_checksum = dev_fw_upg_state.fw_checksum + 1
 
-		if current_fw_upg_state.fw_checksum<>current_fw_upg_state.fw_checksums(current_fw_upg_state.fw_currentfile) then
-			current_fw_upg_state.fw_fail_reason=PL_FW_FAIL_INVALID_FW_CHECKSUM
-			current_fw_upg_state.state=PL_FW_UPG_FAIL
+		if dev_fw_upg_state.fw_checksum<>dev_fw_upg_state.fw_checksums(dev_fw_upg_state.fw_currentfile) then
+			dev_fw_upg_state.fw_fail_reason=PL_FW_FAIL_INVALID_FW_CHECKSUM
+			dev_fw_upg_state.state=PL_FW_UPG_FAIL
 			exit sub
 		end if
-		current_fw_upg_state.fw_checksum=0
-		current_fw_upg_state.fw_receivedfiles=current_fw_upg_state.fw_receivedfiles + 1
-		on_firmware_update_file_complete(current_fw_upg_state)
-		
-		current_fw_upg_state.fw_numfiles = current_fw_upg_state.fw_numfiles - 1
-		current_fw_upg_state.fw_currentfile = current_fw_upg_state.fw_currentfile + 1
-		if current_fw_upg_state.fw_numfiles=0 then 
-			current_fw_upg_state.state=PL_FW_UPG_COMPLETE
-			on_firmware_update_complete(current_fw_upg_state)
+		dev_fw_upg_state.fw_checksum=0
+		on_firmware_update_file_complete(dev_fw_upg_state)
+		dev_fw_upg_state.fw_numfiles = dev_fw_upg_state.fw_numfiles - 1
+		dev_fw_upg_state.fw_currentfile = dev_fw_upg_state.fw_currentfile + 1
+		if dev_fw_upg_state.fw_numfiles=0 then 
+			dev_fw_upg_state.state=PL_FW_UPG_COMPLETE
+			on_firmware_update_complete(dev_fw_upg_state)
 		else
-			current_fw_upg_state.state=PL_FW_UPG_READ_FW_TYPE
-			current_fw_upg_state.fw_percent=0
+			dev_fw_upg_state.state=PL_FW_UPG_READ_FW_TYPE
+			dev_fw_upg_state.fw_percent=0
 		end if
 	 
 	end if		
-	
 end sub
 
 function device_firmware_upload_update() as no_yes
@@ -435,7 +451,7 @@ function device_firmware_upload_update() as no_yes
 		case PL_FW_UPG_READ_CHECKSUM:
 			device_firmware_read_chekcsum()
 		case PL_FW_UPG_READ_FW:
-			device_firmware_get_fw_block()
+			device_firmware_get_fw_block(current_fw_upg_state)
 		case PL_FW_UPG_FAIL:
 			on_firmware_update_complete(current_fw_upg_state)
 			device_firmware_upload_update = NO 
