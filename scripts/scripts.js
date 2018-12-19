@@ -54,7 +54,7 @@ function loadDoc() {
 var progressTimerStarted = false
 function downloadUpgrades() {
 	if (progressTimerStarted == false) {
-		showProgressInterval = setInterval(showProgress, 50);
+		showProgressInterval = setInterval(showProgress, 3000);
 		progressTimerStarted = true;
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function () {

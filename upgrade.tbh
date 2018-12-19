@@ -8,6 +8,19 @@ declare upload_started as boolean
 declare dns_socket, upgrade_socket as byte
 declare device_name as string
 
+
+
+type pl_manifest
+	dev_type as string
+	hw_ver as string
+	tmon_ver as string 
+	wifi_type as string
+	wifi_hw_ver as string
+	wifi_fw_ver as string
+	wifi_mon_ver as string	
+end type
+
+
 enum PL_FW_UPG_STATE
 	PL_FW_UPG__INIT=0,
     PL_FW_READ_HEADER,
@@ -31,6 +44,7 @@ enum PL_UPG_FW_TYPE
 	UNCOMPRESSED_TIOS_APP,
 	WA2000_MON ,  
 	WA2000_APP,  
+	MANIFEST, 
 	WA3000_MON, 
 	WA3000_APP
 end enum 
@@ -123,3 +137,12 @@ declare sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_sta
 
 declare sub init_serial(port as byte, baud as dword)
 declare sub init_receive_socket(receive_interface as string)
+declare sub device_firmware_download_init_ble()
+declare sub device_firmware_write_tios_app(fw as string) 
+declare sub device_firmware_write_wa2000_mon_app(fw as string)
+declare sub device_firmware_read_manifest(manifest as string)
+declare sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
+declare function device_firmware_bytes_available() as dword
+declare function device_firmware_read_32_uint() as dword
+declare function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as dword
+declare sub upgrade_WA2000_firmware(region as pl_wln_upgrade_regions,  index as byte)

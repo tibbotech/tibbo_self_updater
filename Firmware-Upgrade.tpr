@@ -1,11 +1,11 @@
 [project]
 version=1
-platform=TPP3W(G2)
+platform=DS1101N
 src_lib_ver=2_01_02
 name=Firmware-Upgrade
 output=Firmware-Upgrade.tpc
 debug=off
-defines= /dLCD_TYPE=SOLOMON_SSD1963 /dWLN_WPA=1 /dOBJECT_LCD=LCD_ENABLED /dWLN_AVAILABLE=1 /dNET_AVAILABLE=1 /dOBJECT_FD=FD_ENABLED /dOBJECT_KP=KP_ENABLED /dOBJECT_WLN=WLN_ENABLED
+defines=/dLCD_TYPE=SOLOMON_SSD1963 /dOBJECT_LCD=LCD_ENABLED /dOBJECT_FD=FD_ENABLED /dOBJECT_WLN=WLN_ENABLED /dWLN_WPA=1 /dWLN_AVAILABLE=1 /dNET_AVAILABLE=1 /dOBJECT_KP=KP_ENABLED
 transport=udp_broadcast
 [address1]
 platform=SIMULATOR
@@ -27,6 +27,10 @@ address=0.36.119.85.251.40
 platform=TPP3W(G2)
 transport=udp_broadcast
 address=0.36.119.82.149.40
+[address6]
+platform=DS1101N
+transport=udp_broadcast
+address=0.0.0.134.127.128
 [file1]
 path=sock\trunk\sock.tbh
 type=header
@@ -291,5 +295,19 @@ path=resources\settings.xtxt
 type=xtext
 format=STG_lib_configurator
 condition=
+locked=no
+location=project
+[file39]
+path=1000.tbs
+type=basic
+format=
+condition=SYS_VER=1000
+locked=no
+location=project
+[file40]
+path=2000.tbs
+type=basic
+format=
+condition=SYS_VER=2000
 locked=no
 location=project
