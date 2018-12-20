@@ -10,7 +10,7 @@ sub init()
 	connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
 	init_fd()
-	init_io()
+
 	init_sockets()
 	DHCP_DNS_init()
 
@@ -22,10 +22,14 @@ sub init_sockets()
 	
 	dim f as byte
 
+<<<<<<< .merge_file_a18896
 	for f=5 to 15
+=======
+	for f=12 to 15
+>>>>>>> .merge_file_a19644
 		sock.num=f
-		sock.txbuffrq(4)
-		sock.varbuffrq(4)
+		sock.txbuffrq(2)
+		sock.varbuffrq(2)
 		sock.redir(PL_REDIR_SOCK0 + sock.num)
 		sock.protocol=PL_SOCK_PROTOCOL_TCP
 		sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
@@ -48,16 +52,6 @@ sub init_fd()
 
 end sub
 
-sub init_io()
-
-	io.num=PL_IO_NUM_46
-	io.enabled=YES
-	io.num=PL_IO_NUM_47
-	io.enabled=YES
-	io.num=PL_IO_NUM_48
-	io.enabled=YES
-	
-end sub
 
 
 'Initializes HTTP sockets
@@ -65,39 +59,38 @@ end sub
 
 'Connects to the Wi-Fi Access Point
 
+'====================================================================
 function connect_to_ap(byref ap_name as string, security_mode as pl_wln_security_modes, byref key as string, domain as pl_wln_domains) as en_wln_status_codes
-
 	dim pmk as string(32)
 	wln_init()
-	wln.band= WIFI_PHY_11BG_MIXED
-	#if WLN_WPA
-		#if GA1000
-			if security_mode=WLN_SECURITY_MODE_WPA1 or security_mode=WLN_SECURITY_MODE_WPA2 then 
-				if stg_get("APN",0)<>ap_name or stg_get("PW",0)<>key or stg_sg("PMK",0,pmk,EN_STG_GET)<>EN_STG_STATUS_OK then
-					'recalculate the key
-					pmk=wln_wpa_mkey_get(key,ap_name)
-					stg_set("PMK",0,pmk)
-					stg_set("APN",0,ap_name)
-					stg_set("PW",0,key)
-				else
-					pmk=stg_get("PMK",0) 'the key stays the same
-				end if
-			end if
-		#else
-			pmk=key
-		#endif
-	#else
+#if WLN_WPA
+	if wln.getmoduletype = PL_WLN_MODULE_TYPE_GA1000 then 
+		if security_mode=WLN_SECURITY_MODE_WPA1 or security_mode=WLN_SECURITY_MODE_WPA2 then 				
+			if stg_get("APN",0)<>ap_name or stg_get("PW",0)<>key or stg_sg("PMK",0,pmk,EN_STG_GET)<>EN_STG_STATUS_OK then
+				'recalculate the key
+				pmk=wln_wpa_mkey_get(key,ap_name)
+				stg_set("PMK",0,pmk)
+				stg_set("APN",0,ap_name)
+				stg_set("PW",0,key)
+			else
+				pmk=stg_get("PMK",0) 'the key stays the same
+			end if			
+		end if
+	else
 		pmk=key
-	#endif
-
-	#if SRC_LIB_VER < &h020003
-		connect_to_ap=wln_start(ap_name,security_mode,pmk,domain)
-	#endif
-
-	#if SRC_LIB_VER >= &h020003
-		connect_to_ap=wln_start(ap_name,security_mode,pmk,domain,YES,PL_WLN_ASCAN_INFRASTRUCTURE)
-	#endif
+	end if
+#else
+	pmk=key
+#endif
 	
+#if SRC_LIB_VER < &h020003
+	connect_to_ap=wln_start(ap_name,security_mode,pmk,domain)
+#endif
+
+#if SRC_LIB_VER >= &h020003
+	connect_to_ap=wln_start(ap_name,security_mode,pmk,domain,YES,PL_WLN_ASCAN_INFRASTRUCTURE)
+#endif
+
 end function
 
 sub callback_dhcp_ok(renew as no_yes, interface as pl_sock_interfaces, byref ip as string, byref gateway_ip as string, byref netmask as string, lease_time as dword)

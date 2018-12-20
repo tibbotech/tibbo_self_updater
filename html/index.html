@@ -53,7 +53,17 @@
 				Firmware Version: <b><?sock.setdata(wln.fwversion)sock.send?></b><br>
 				WA2000 Monitor Version: <b><?sock.setdata(wln.monversion)sock.send?></b><br>
 				<?end if?>
-				Monitor Version: <b><?sock.setdata(sys.monversion)sock.send?></b><br>
+				Monitor Version: <b><?
+				#if SYS_VER > 1000
+					sock.setdata(sys.monversion)
+					sock.send
+				#else 
+					sock.setdata("Not Available")
+					sock.send
+					#endif
+					
+				?></b><br>			
+				 
 				TIOS Version: <b><?
 				dim s as string=sys.version 
 				s=mid(s,2,len(s)-2)

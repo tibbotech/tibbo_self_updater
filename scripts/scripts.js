@@ -67,8 +67,11 @@ function loadDoc() {
 var showProgressInterval = undefined;
 var upgradeProgress = 0;
 function downloadUpgrades() {
-	if (showProgressInterval == undefined) {
-		showProgressInterval = setInterval(showProgress, 50);
+
+	if (progressTimerStarted == false) {
+		showProgressInterval = setInterval(showProgress, 3000);
+		progressTimerStarted = true;
+
 		var xhttp = new XMLHttpRequest();
 		upgradeProgress = 0;
 		// xhttp.onreadystatechange = function () {

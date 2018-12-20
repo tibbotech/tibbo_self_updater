@@ -3,7 +3,7 @@
 #define STG_DEBUG_PRINT 1 
 #define WLN_WPA 1 
 #define WLN_ENABLED 1 
-#define GA1000 1
+#define GA1000 0
 
 
 'Wi-Fi setup
@@ -11,11 +11,34 @@
 #define WLN_WPA 1
 #define WLN_AVAILABLE 1
 #define WLN_DEBUG_PRINT 1
-#define WLN_CLK PL_IO_NUM_53
-#define WLN_CS PL_IO_NUM_49
-#define WLN_DI PL_IO_NUM_52
-#define WLN_DO PL_IO_NUM_50
-#define WLN_RST PL_IO_NUM_51
+
+#if PLATFORM_ID=EM500 or PLATFORM_ID=EM500W or PLATFORM_ID=EM1202W
+	#define WLN_RESET_MODE 1 'there will be no dedicated reset, and all other lines are fixed
+#elif PLATFORM_ID=EM1206 or PLATFORM_ID=EM1206W or PLATFORM_ID=DS1101W or PLATFORM_ID=DS1102W or PLATFORM_ID=EM1206N or PLATFORM_ID=DS1101N or PLATFORM_ID=DS1102N 
+	#define WLN_CLK PL_IO_NUM_14
+	#define WLN_CS PL_IO_NUM_15
+	#define WLN_DI PL_IO_NUM_12
+	#define WLN_DO PL_IO_NUM_13
+	#define WLN_RST PL_IO_NUM_11	
+	#define CTS_MAP PL_INT_NUM_2  			
+	#define RTS_MAP PL_IO_NUM_3_TX1_INT3		
+#else
+	'EM1000, NB1010,...
+	#define WLN_CLK PL_IO_NUM_53
+	#define WLN_CS PL_IO_NUM_49
+	'Used for internal debugging
+#if TIBBO_DEBUG_INTERNAL
+	#define WLN_DI PL_IO_NUM_27
+	#define WLN_DO PL_IO_NUM_25
+#else
+	#define WLN_DI PL_IO_NUM_52
+	#define WLN_DO PL_IO_NUM_50
+#endif
+	#define WLN_RST PL_IO_NUM_51
+	
+	#define CTS_MAP PL_IO_NUM_0
+	#define RTS_MAP PL_IO_NUM_16_INT0
+#endif
 
 'Libraries
 
@@ -29,7 +52,6 @@ include "dns\trunk\dns.tbh"
 'Functions
 
 declare sub init()
-declare sub init_io()
 declare sub get_module_type()
 declare sub init_fd()
 declare sub init_web_receive_socket()

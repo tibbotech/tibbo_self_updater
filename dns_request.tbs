@@ -14,7 +14,7 @@ sub DHCP_DNS_init()
 	sock.protocol=PL_SOCK_PROTOCOL_TCP
 	sock.inconmode= PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.txbuffrq(4)
-	sock.rxbuffrq(32)
+	sock.rxbuffrq(4)
 	sys.buffalloc()
 
 end sub
@@ -140,8 +140,8 @@ sub init_web_receive_socket()
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.allowedinterfaces="WLN,NET"
 	sock.localportlist="1000"
-	sock.rxbuffrq(16)
-	sock.txbuffrq(16) 
+	sock.rxbuffrq(4)
+	sock.txbuffrq(4) 
 	sys.buffalloc
 	sock.num=prevsock
 	

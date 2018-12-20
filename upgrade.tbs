@@ -30,26 +30,7 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	
 end sub
 
-sub device_firmware_download_init_ble()
-	
-	dim s as string
-	dim mac as string
-	dim b as byte
-	'IF GA10000 dont do this
-	'set the state to fai land set gail rteadon 
-	
-	bt.rxclear()
-	bt.txclear()	
-	s=DEVICE_NAME+right(hex_mac(bt.mac),5)
-	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
-	bt.name = s
-	bt.rxbuffrq(64)	 'Change this 64 to a define
-	sys.buffalloc
-	if bt.enabled<>YES then
-		bt.enable
-	end if
-	
-end sub
+
 
 function hex_mac(mac as string) as string
 
@@ -83,7 +64,7 @@ sub device_firmware_download_init()
 select case current_fw_upg_state.source
 	case PL_FW_UPG_BLE:
 		device_firmware_download_init_ble()
-		current_fw_upg_state.state = PL_FW_READ_HEADER
+		current_fw_upg_state.state = PL_FW_READ_HEADER	
 	case PL_FW_UPG_WEB:
 		current_fw_upg_state.state = PL_FW_READ_HEADER
 	case PL_FW_UPG_SOCK:
@@ -99,47 +80,18 @@ end select
 end sub
 
 sub init_serial(port as byte, baud as dword)
-	if port = 1 then
-		 ser.num=0
-	else if port = 2 then 
-		ser.num = 1 
-	else if port = 3 then 
-		ser.num = 2 
-	else if port = 4 then 
-		ser.num = 3
-	end if
-	ser.enabled=NO
+	
+	ser.num=0 
+ 	ser.enabled=NO
 	ser.mode=PL_SER_MODE_UART
 	ser.interface=PL_SER_SI_FULLDUPLEX
 	set_baudrate(baud)
 	ser.flowcontrol=ENABLED
-	if port=1 then	
-		ser.rtsmap=PL_IO_NUM_0
-		io.num=PL_IO_NUM_0
-	else if port=2 then
-		ser.rtsmap=PL_IO_NUM_1
-		io.num=PL_IO_NUM_1
-	else if port=3 then
-		ser.rtsmap=PL_IO_NUM_2
-		io.num=PL_IO_NUM_2
-	else if port=4 then
-		ser.rtsmap=PL_IO_NUM_3
-		io.num=PL_IO_NUM_3
-	end if
+	ser.rtsmap=CTS_MAP
+	io.num=CTS_MAP
 	io.enabled=YES
-	if port=1 then	
-		ser.ctsmap=PL_IO_NUM_16_INT0
-		io.num=PL_IO_NUM_16_INT0
-	else if port=2 then
-		ser.ctsmap=PL_IO_NUM_17_INT1
-		io.num=PL_IO_NUM_17_INT1
-	else if port=3 then
-		ser.ctsmap=PL_IO_NUM_18_INT2
-		io.num=PL_IO_NUM_18_INT2
-	else if port=4 then
-		ser.ctsmap=PL_IO_NUM_19_INT3
-		io.num=PL_IO_NUM_19_INT3
-	end if
+	ser.ctsmap=RTS_MAP
+	io.num=RTS_MAP
 	io.enabled=NO
 	ser.interchardelay=0
 	ser.parity=PL_SER_PR_NONE
@@ -167,8 +119,8 @@ sub init_receive_socket(receive_interface as string)
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.allowedinterfaces="WLN,NET"
 	sock.localportlist="1000"
-	sock.rxbuffrq(16)
-	sock.txbuffrq(16) 
+	sock.rxbuffrq(sys.freebuffpages-1)
+	sock.txbuffrq(1) 
 	sys.buffalloc
 	
 	sock.num=prevsock
@@ -197,73 +149,11 @@ sub set_baudrate(baudrate as dword)
 	
 end sub
 
-function device_firmware_read_32_uint() as dword
-	
-	dim l as byte(4)
-	dim s as string
-	select case current_fw_upg_state.source
-		case PL_FW_UPG_BLE:		   	
-			l=bt.getdata(4)
-			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
-		case PL_FW_UPG_WEB:
-			sock.num=socket_number.http_socket
-			s=sock.peekdata(255)
-			l=sock.getdata(4)
-			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 
-		case PL_FW_UPG_SOCK:
-			sock.num=socket_number.upgrade_socket
-			s=sock.peekdata(255)
-			l=sock.getdata(4)
-			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
-		case PL_FW_UPG_SER:
-			ser.num=current_fw_upg_state.source_num
-			l=ser.getdata(4)
-			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
-		case else:
-			device_firmware_read_32_uint = 0			
-	end select
-	
-end function
 
-function device_firmware_bytes_available() as dword
 	
-	select case current_fw_upg_state.source
-		case PL_FW_UPG_WEB:
-			sock.num=socket_number.http_socket
-			device_firmware_bytes_available=sock.rxlen
-		case PL_FW_UPG_BLE:		   	
-			device_firmware_bytes_available = bt.rxlen							 
-		case PL_FW_UPG_SOCK:
-			sock.num=socket_number.upgrade_socket
-			device_firmware_bytes_available=sock.rxlen
-		case PL_FW_UPG_SER:
-			ser.num=current_fw_upg_state.source_num
-			device_firmware_bytes_available=ser.rxlen
-		case else:
-			device_firmware_bytes_available = 0
-	end select
-	
-end function
 
-sub device_firmware_read_data(byref data as string, byref count as dword)
 
-	select case current_fw_upg_state.source
-		case PL_FW_UPG_WEB:
-			sock.num=socket_number.http_socket
-			data = sock.getdata(count)	
-		case PL_FW_UPG_BLE:		   	
-			data = bt.getdata(count)							 
-		case PL_FW_UPG_SOCK:
-			sock.num=socket_number.upgrade_socket
-			data = sock.getdata(count)	
-		case PL_FW_UPG_SER:
-			ser.num=current_fw_upg_state.source_num
-			data = ser.getdata(count)
-		case else:
-			data = ""
-	end select
-	
-end sub
+
 
 sub device_firmware_read_header()	
 
@@ -296,7 +186,7 @@ sub device_firmware_read_fw_type()
 		case else:
 			
 		end select		
-		if current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile) <= WA3000_APP then
+		if current_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile) <= MANIFEST then
 			current_fw_upg_state.state = PL_FW_UPG_READ_LEN						
 		else 
 			current_fw_upg_state.fw_fail_reason = PL_FW_FAIL_INVALID_FW_TYPE
@@ -366,75 +256,13 @@ sub device_firmware_write_wa2000_mon_app(fw as string)
 	wln.writeflashpage(fw)	
 end sub
 
-sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
-	dim fw as string
-	dim percent_complete, total_percent as byte
-	dim i as dword
-	if dev_fw_upg_state.fw_remaining  >= FW_UPG_BLK_LEN then   'We have remaining pages for the firmware update
-		if device_firmware_bytes_available()  >= FW_UPG_BLK_LEN then			
-			device_firmware_read_data(fw,FW_UPG_BLK_LEN)
-		end if
-	else 'Last block of firmware data
-		if device_firmware_bytes_available()  >= dev_fw_upg_state.fw_remaining then					
-			device_firmware_read_data(fw,dev_fw_upg_state.fw_remaining)
-		end if 
-	end if 
+sub device_firmware_read_manifest(manifest as string)
 	
-	if len(fw) > 0  then 		
-		dim csdata(128) as byte = fw		
-		
-		dev_fw_upg_state.fw_remaining = dev_fw_upg_state.fw_remaining - len(fw)
-		dev_fw_upg_state.fw_total_remaining = dev_fw_upg_state.fw_total_remaining - len(fw)
-		for i = 0 To len(fw)-1
-			 dev_fw_upg_state.fw_checksum  = dev_fw_upg_state.fw_checksum + csdata(i) 
-		next i
-		
-		select case dev_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
-		case COMPRESSED_TIOS_APP:
-			device_firmware_write_tios_app( fw)
-		case WA2000_MON:
-			device_firmware_write_wa2000_mon_app( fw)
-		case WA2000_APP:
-			device_firmware_write_wa2000_mon_app( fw)
-		case else:
-			'Ignore the file.
-		end select
-		
-		on_firmware_update_data_received(dev_fw_upg_state)
-		dev_fw_upg_state.fw_page = dev_fw_upg_state.fw_page + 1
-		percent_complete = 100 - 100 * (dev_fw_upg_state.fw_remaining/dev_fw_upg_state.fw_lengths(dev_fw_upg_state.fw_currentfile))
-		total_percent = 100 - (100 * dev_fw_upg_state.fw_total_remaining/dev_fw_upg_state.fw_totalsize)
-		if percent_complete > dev_fw_upg_state.fw_percent or total_percent > dev_fw_upg_state.fw_total_percent then
-			dev_fw_upg_state.fw_percent  = percent_complete
-			dev_fw_upg_state.fw_total_percent = total_percent
-			on_firmware_update_percent_change(dev_fw_upg_state)
-		end if
 	
-	end if
-	if dev_fw_upg_state.fw_remaining = 0 then
-   
-		dev_fw_upg_state.fw_checksum  = not dev_fw_upg_state.fw_checksum 
-		dev_fw_upg_state.fw_checksum = dev_fw_upg_state.fw_checksum + 1
-
-		if dev_fw_upg_state.fw_checksum<>dev_fw_upg_state.fw_checksums(dev_fw_upg_state.fw_currentfile) then
-			dev_fw_upg_state.fw_fail_reason=PL_FW_FAIL_INVALID_FW_CHECKSUM
-			dev_fw_upg_state.state=PL_FW_UPG_FAIL
-			exit sub
-		end if
-		dev_fw_upg_state.fw_checksum=0
-		on_firmware_update_file_complete(dev_fw_upg_state)
-		dev_fw_upg_state.fw_numfiles = dev_fw_upg_state.fw_numfiles - 1
-		dev_fw_upg_state.fw_currentfile = dev_fw_upg_state.fw_currentfile + 1
-		if dev_fw_upg_state.fw_numfiles=0 then 
-			dev_fw_upg_state.state=PL_FW_UPG_COMPLETE
-			on_firmware_update_complete(dev_fw_upg_state)
-		else
-			dev_fw_upg_state.state=PL_FW_UPG_READ_FW_TYPE
-			dev_fw_upg_state.fw_percent=0
-		end if
-	 
-	end if		
+	
 end sub
+
+
 
 function device_firmware_upload_update() as no_yes
 
@@ -469,28 +297,13 @@ public function device_firmware_upload_async(source as PL_FW_UPG_SOURCE, number 
 
 end function
 
-sub on_bt_event(bt_event as enum pl_bt_events)
-
-	select case bt_event
-	case PL_BT_EVENT_CONNECTED:
-		sys.debugprint("BT Connected\r\n")
-		bt.setdata("Hello World")
-		bt.send()
-	case PL_BT_EVENT_DISCONNECTED:
-		sys.debugprint("BT Disconnected\r\n")
-	case PL_BT_EVENT_ENABLED:
-		bt.advertise=true
-	case PL_BT_EVENT_DISABLED:
-		sys.debugprint("BT Power Off\r\n")
-	end select
-	
-end sub
 
 function get_fw_upg_state() as pl_upg_state_t 
 
 	get_fw_upg_state=current_fw_upg_state
 	
 end function
+
 
 function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as dword
 	dim i as integer
