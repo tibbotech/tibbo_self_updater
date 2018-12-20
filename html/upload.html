@@ -33,15 +33,6 @@ select case method
 		device_firmware_upload_async(PL_FW_UPG_WEB, 0)
 		upload_started=true
 		download_url.firmware_url=value
-		?>
-<br/><h1>Upload Through Webpage</h1><br/>
-<h2><ol class="center">
-	<li>Enter the URL of the webpage you would like to load the firmware from.</li>
-	<li>Press continue to proceed to the upload page.</li>
-</ol><br/>
-
-<input class="textbox" type="text" id="url" value="www.tibbo.com/downloads/open/tios_int_rel/WA2000_02_09.tcu"></br></br></h2>
-		<?
 	case "wifi":
 		init_receive_socket(method)
 		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
@@ -122,16 +113,3 @@ sock.num=prevsock
 	</div>
 </div>
 <br/><button class="smallbutton" onclick="cancelUpgrade()" ontouchend="cancelUpgrade()">Cancel Upgrade</button><br/>
-
-<script>
-	window.addEventListener('beforeunload', function (e) {
-		if (upgradeProgress > 0) {//upload in progress
-			if (confirm("abort upgrade?")) {
-				// Cancel the event
-				e.preventDefault();
-				// Chrome requires returnValue to be set
-				e.returnValue = '';
-			}
-		}
-	});
-</script>

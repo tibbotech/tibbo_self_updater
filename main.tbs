@@ -69,7 +69,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	
 	sys.debugprint("All files have been downloaded.\r\n")
 	
-	dim i as byte
+	dim i as integer
 	dim module_type as pl_wln_module_types
 	
 		
@@ -86,7 +86,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	
 	i = get_firmware_index(WA2000_MON)
 	if i >= 0 then
-		upgrade_WA2000_firmware(WA2000_MON, i)
+	'	upgrade_WA2000_firmware(WA2000_MON, i)
 	end if
 	
 	i = get_firmware_index(WA2000_APP)
@@ -98,7 +98,27 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 		io.state=HIGH
 		module_type = wln.getmoduletype()  'Causes  the device to enter monitor mode. 			
 		delay_ms(1000)	'delay to enter monitor mode. 
-		upgrade_WA2000_firmware(WA2000_APP, i)
+		'upgrade_WA2000_firmware(WA2000_APP, i)
+	end if
+	
+	i =  get_firmware_index(UNCOMPRESSED_TIOS_APP)  
+	if i >= 0  then 
+	   fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/256+1)
+	end if
+	
+	i=  get_firmware_index(COMPRESSED_TIOS_APP) 
+	if i >= 0  then 
+		fd.copyfirmwarelzo(YES)
+	end if
+	
+	i =  get_firmware_index(UNCOMPRESSED_TIOS)  
+	if i >= 0  then 
+		fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/256+1)
+	end if
+	
+	i =  get_firmware_index(TIOS_MON)  
+	if i >= 0  then 
+		'fd.copymonitor()
 	end if
 	
 	

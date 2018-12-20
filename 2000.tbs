@@ -110,21 +110,6 @@ sub on_bt_event(bt_event as enum pl_bt_events)
 	
 end sub
 
-'----------------------------------------------------------------------------
-sub wln_delay_ms(ms as dword)
-	dim delay as dword
-    delay = sys.timercountms
-    if delay + ms < delay then 
-        delay = delay + ms
-        while sys.timercountms < delay
-	    wend
-    else 
-        while sys.timercountms - delay < ms
-	    wend
-    end if
-	
-end sub
-
 sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 	dim fw as string
 	dim percent_complete, total_percent as byte
@@ -148,8 +133,9 @@ sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 		next i
 		
 		select case dev_fw_upg_state.fw_types(current_fw_upg_state.fw_currentfile)
-		case COMPRESSED_TIOS_APP:
+		case COMPRESSED_TIOS_APP,UNCOMPRESSED_TIOS_APP,UNCOMPRESSED_TIOS:
 			device_firmware_write_tios_app( fw)
+			dev_fw_upg_state.fw_page = dev_fw_upg_state.fw_page + 1
 		case WA2000_MON:
 			device_firmware_write_wa2000_mon_app( fw)
 		case WA2000_APP:
@@ -161,7 +147,7 @@ sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 		end select
 		
 		on_firmware_update_data_received(dev_fw_upg_state)
-		dev_fw_upg_state.fw_page = dev_fw_upg_state.fw_page + 1
+
 		percent_complete = 100 - 100 * (dev_fw_upg_state.fw_remaining/dev_fw_upg_state.fw_lengths(dev_fw_upg_state.fw_currentfile))
 		total_percent = 100 - (100 * dev_fw_upg_state.fw_total_remaining/dev_fw_upg_state.fw_totalsize)
 		if percent_complete > dev_fw_upg_state.fw_percent or total_percent > dev_fw_upg_state.fw_total_percent then

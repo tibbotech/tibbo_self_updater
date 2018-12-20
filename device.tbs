@@ -9,8 +9,6 @@ sub init()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
 	connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
-	init_fd()
-
 	init_sockets()
 	DHCP_DNS_init()
 
@@ -22,11 +20,7 @@ sub init_sockets()
 	
 	dim f as byte
 
-<<<<<<< .merge_file_a18896
-	for f=5 to 15
-=======
 	for f=12 to 15
->>>>>>> .merge_file_a19644
 		sock.num=f
 		sock.txbuffrq(2)
 		sock.varbuffrq(2)
@@ -45,12 +39,6 @@ sub init_sockets()
 	
 end sub
 
-sub init_fd()
-	
-	fd.formatj((fd.availableflashspace/4)*3,10,100)
-	fd.mount
-
-end sub
 
 
 
@@ -195,6 +183,34 @@ sub callback_dns_failure(status as en_dns_status_codes)
 	sys.debugprint("DNS Failed \x0d\x0a")
 	
 end sub
+
+#if SYS_VER = 1000
+'----------------------------------------------------------------------------
+sub delay_ms(ms as dword)
+	dim delay as dword = ms * 3
+	while delay > 0
+			delay=delay-1
+	wend	
+end sub
+
+#else
+
+'----------------------------------------------------------------------------
+sub delay_ms(ms as dword)
+	dim delay as dword
+    delay = sys.timercountms
+    if delay + ms < delay then 
+        delay = delay + ms
+        while sys.timercountms < delay
+	    wend
+    else 
+        while sys.timercountms - delay < ms
+	    wend
+    end if
+	
+end sub
+
+#endif 
 
 sub callback_wln_pre_buffrq(required_buff_pages as byte)
 end sub

@@ -30,8 +30,6 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	
 end sub
 
-
-
 function hex_mac(mac as string) as string
 
 	dim startp as byte
@@ -305,7 +303,7 @@ function get_fw_upg_state() as pl_upg_state_t
 end function
 
 
-function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as dword
+function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as integer
 	dim i as integer
 	for i=0 to MAX_NUM_FILE_UPG-1
 		if current_fw_upg_state.fw_types(i)=fwtype then

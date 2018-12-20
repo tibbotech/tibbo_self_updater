@@ -144,5 +144,5 @@ declare sub device_firmware_read_manifest(manifest as string)
 declare sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 declare function device_firmware_bytes_available() as dword
 declare function device_firmware_read_32_uint() as dword
-declare function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as dword
+declare function get_firmware_index(fwtype as PL_UPG_FW_TYPE) as integer
 declare sub upgrade_WA2000_firmware(region as pl_wln_upgrade_regions,  index as byte)

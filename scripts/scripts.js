@@ -1,9 +1,28 @@
+window.addEventListener('beforeunload', function (e) {
+	if (upgradeProgress > 0) {//upload in progress
+		if (confirm("abort upgrade?")) {
+			// Cancel the event
+			e.preventDefault();
+			// Chrome requires returnValue to be set
+			e.returnValue = '';
+		}
+	}
+});
+
 function processClick(uploadMethod) {
 
 	var xhttp = new XMLHttpRequest();
 	var method = "";
 	var value = "";
 	var baud = 0;
+	xhttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("demo").innerHTML = this.responseText;
+			if (method != "web") {
+				downloadUpgrades();
+			}
+		}
+	};
 	if (uploadMethod == 1) {
 		xhttp.open("GET", "processweb.html", true);
 		xhttp.send();
@@ -21,12 +40,6 @@ function processClick(uploadMethod) {
 		// xhttp.open("GET", "processethernet.html", true);
 		method="ethernet";
 	}
-	xhttp.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("demo").innerHTML = this.responseText;
-			downloadUpgrades();
-		}
-	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 };
@@ -68,12 +81,11 @@ var showProgressInterval = undefined;
 var upgradeProgress = 0;
 function downloadUpgrades() {
 
-	if (progressTimerStarted == false) {
-		showProgressInterval = setInterval(showProgress, 3000);
-		progressTimerStarted = true;
-
-		var xhttp = new XMLHttpRequest();
+	if (showProgressInterval == undefined) {
+		showProgressInterval = setInterval(showProgress, 1000);
 		upgradeProgress = 0;
+
+		// var xhttp = new XMLHttpRequest();
 		// xhttp.onreadystatechange = function () {
 		// 	if (this.readyState == 4 && this.status == 200) {
 		// 		document.getElementById("demo").innerHTML =
