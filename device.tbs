@@ -22,7 +22,7 @@ sub init_sockets()
 	
 	dim f as byte
 
-	for f=8 to 15
+	for f=5 to 15
 		sock.num=f
 		sock.txbuffrq(4)
 		sock.varbuffrq(4)

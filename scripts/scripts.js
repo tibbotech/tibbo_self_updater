@@ -1,22 +1,33 @@
 function processClick(uploadMethod) {
 
 	var xhttp = new XMLHttpRequest();
+	var method = "";
+	var value = "";
+	var baud = 0;
+	if (uploadMethod == 1) {
+		xhttp.open("GET", "processweb.html", true);
+		xhttp.send();
+		return;
+	} else if (uploadMethod == 2) {
+		// xhttp.open("GET", "processserial.html", true);
+		method = "ser";
+	} else if (uploadMethod == 3) {
+		// xhttp.open("GET", "processwifi.html", true);
+		method = "wifi";
+	} else if (uploadMethod == 4) {
+		// xhttp.open("GET", "processbluetooth.html", true);
+		method = "ble";
+	} else if (uploadMethod == 5) {
+		// xhttp.open("GET", "processethernet.html", true);
+		method="ethernet";
+	}
 	xhttp.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("demo").innerHTML = this.responseText;
+			downloadUpgrades();
 		}
 	};
-	if (uploadMethod == 1) {
-		xhttp.open("GET", "processweb.html", true);
-	} else if (uploadMethod == 2) {
-		xhttp.open("GET", "processserial.html", true);
-	} else if (uploadMethod == 3) {
-		xhttp.open("GET", "processwifi.html", true);
-	} else if (uploadMethod == 4) {
-		xhttp.open("GET", "processbluetooth.html", true);
-	} else if (uploadMethod == 5) {
-		xhttp.open("GET", "processethernet.html", true);
-	}
+	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 };
 
@@ -30,10 +41,12 @@ function loadDoc() {
 		value = document.getElementById("url").value;
 	} else if (document.getElementById("ser")) {
 		method = "ser";
-		var e = document.getElementById("ser");
-		value = e.options[e.selectedIndex].value;
-		e = document.getElementById("baud");
-		baud = e.options[e.selectedIndex].value;
+		// var e = document.getElementById("ser");
+		// value = e.options[e.selectedIndex].value;
+		// e = document.getElementById("baud");
+		// baud = e.options[e.selectedIndex].value;
+		e = 0;
+		baud = 115200;
 	} else if (document.getElementById("wifi")) {
 		method = "wifi";
 	} else if (document.getElementById("ethernet")) {
@@ -51,20 +64,21 @@ function loadDoc() {
 	xhttp.send();
 }
 
-var progressTimerStarted = false
+var showProgressInterval = undefined;
+var upgradeProgress = 0;
 function downloadUpgrades() {
-	if (progressTimerStarted == false) {
+	if (showProgressInterval == undefined) {
 		showProgressInterval = setInterval(showProgress, 50);
-		progressTimerStarted = true;
 		var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function () {
-			if (this.readyState == 4 && this.status == 200) {
-				document.getElementById("demo").innerHTML =
-					this.responseText;
-			}
-		};
-		xhttp.open("GET", "downloadupgrades.html", true);
-		xhttp.send();
+		upgradeProgress = 0;
+		// xhttp.onreadystatechange = function () {
+		// 	if (this.readyState == 4 && this.status == 200) {
+		// 		document.getElementById("demo").innerHTML =
+		// 			this.responseText;
+		// 	}
+		// };
+		// xhttp.open("GET", "downloadupgrades.html", true);
+		// xhttp.send();
 	}
 };
 
@@ -84,10 +98,12 @@ function showProgress() {
 			if (myObj.percent >= 100) {
 				x.style.display = "none";
 				clearInterval(showProgressInterval);
+				showProgressInterval = undefined;
 				startInstallTimer();
 			}
 
 			if (myObj.percent > 0 && myObj.percent < 100) {
+				upgradeProgress = myObj.percent;
 				x.style.display = "block";
 				y.style.display = "block";
 				z.style.display = "block";
@@ -114,8 +130,12 @@ function loadIndex() {
 };
 
 function cancelUpgrade() {
-
-	clearInterval(showProgressInterval)
+	clearInterval(showProgressInterval);
+	showProgressInterval = undefined;
+	if (upgradeProgress == 0) {
+		loadIndex();
+		return;
+	}
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
@@ -133,7 +153,6 @@ function startRebootTimer(duration, display) {
 	rebootTimerInterval = setInterval(function () {
 		display.textContent = duration;
 		if (duration == 28) {
-			progressTimerStarted = false;
 			rebootSystem();
 		}
 		if (duration-- <= 0) {
@@ -158,9 +177,13 @@ function rebootSystem() {
 }
 
 
+var startInstallInterval = undefined;
 function startInstallTimer() {
 	var percent = 0;
 	var elem = document.getElementById("progbar");
+	if (startInstallInterval != undefined) {
+		return;
+	}
 	startInstallInterval = setInterval(function () {
 		document.getElementById("percent").innerHTML = percent;
 		elem.style.width = percent + "%";

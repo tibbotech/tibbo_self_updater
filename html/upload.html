@@ -20,6 +20,9 @@ b=instr(1,s," HTTP/1.1",1)
 baud = sock.gethttprqstring(b-1)
 baud = right(baud,len(baud)-6)
 
+baud=115200
+value=0
+
 select case method
 	case "web":
 		start_dns(value)
@@ -30,23 +33,105 @@ select case method
 		device_firmware_upload_async(PL_FW_UPG_WEB, 0)
 		upload_started=true
 		download_url.firmware_url=value
+		?>
+<br/><h1>Upload Through Webpage</h1><br/>
+<h2><ol class="center">
+	<li>Enter the URL of the webpage you would like to load the firmware from.</li>
+	<li>Press continue to proceed to the upload page.</li>
+</ol><br/>
+
+<input class="textbox" type="text" id="url" value="www.tibbo.com/downloads/open/tios_int_rel/WA2000_02_09.tcu"></br></br></h2>
+		<?
 	case "wifi":
 		init_receive_socket(method)
 		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
 		upload_started=true
+		?>
+</br><h1>Upload Through Wi-Fi</h1></br></br>
+<?if wln.ip="1.0.0.1" then?>
+	<red>Invalid IP address detected. Please ensure that your Wi-Fi module is connected correctly and that it has been assigned a valid IP address.</red>	
+<?else?>
+	<h2><ol class="center">
+		<li>Press continue to proceed to the upload page.</li>
+		<li>Open IO Ninja.</li>
+		<li>Create a new TCP Connection Socket to your Wi-Fi module (IP Address:<green> <?sock.setdata(wln.ip)?></green>, Port: <green>1000</green>)</li>
+		<li>Click "File", "Browse" to the desired firmware file and press "Send".</li>
+	</ol><h2>
+<?end if?>
+		<?
 	case "ethernet":
 		init_receive_socket(method)
 		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)
 		upload_started=true
+		?>
+<br/><h1>Upload Through Ethernet</h1><br/><br/><h2>
+<?if net.ip="1.0.0.1" then?>
+	<red>Invalid IP address detected. Please ensure that your device has been assigned a valid IP address.</red>	
+<?else?>
+	<ol class="center">
+		<!-- <li>Press continue to proceed to the upload page.</li> -->
+		<li>Open IO Ninja.</li>
+		<li>Create a new TCP Connection Socket to your device (IP Address: <green><?sock.setdata(net.ip)?></green>, Port: <green>1000</green>)</li>
+		<li>Click "File", "Browse" to the desired firmware file and press "Send".</li>
+	</ol>
+<?end if?>
+		<?
 	case "ser":
 		init_serial(value, baud)
 		value=val(value)-1
 		device_firmware_upload_async(PL_FW_UPG_SER, value)
 		upload_started=true
+		?>
+<br/><h1>Upload Through Serial</h1>
+<br/><h2><ol class="center">
+	<!-- <li>Select the serial port you would like to transfer through.</li>
+	<li>Select the baudrate at which you would like to transfer.</li> -->
+	<li>Press continue to proceed to the upload page.</li>
+	<li>Open IO Ninja.</li>
+	<li>Create a new serial connection to your device at the same baudrate as you have selected.</li>
+	<li>Click "File", "Browse" to the desired firmware file and press "Send".</li>
+</ol><br/>
+		<?
 	case "ble":
 		device_firmware_upload_async(PL_FW_UPG_BLE, 0)
 		upload_started=true
+		?>
+<br/><h1>Upload Through Bluetooth</h1><br/>
+<h2><ol class="center">
+	<li>Press continue to proceed to the upload page.</li>
+	<li>Then, begin the transfer of the firmware file via Bluetooth.</li>
+</ol><h2><br/>
+		<?
 end select
 
 sock.num=prevsock
 ?>
+
+<br><br><br>
+
+<h1><span id="title">Begin file transfer to proceed...</span></h1>
+<h2><br>
+<div id="statusupdate" style="display:none">
+	Number of Files: <span id="files">0</span><br>
+	Total Size: <span id="size">0</span> bytes<br><br><br>
+</div>
+<div id="percentupdate" style="display:none"><b><span id="percent">0</span>% Complete</b></div>
+</h2>
+<div class="progress" id="progressb" style="width:40%; display:none;">
+	<div id= "progbar" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">
+	</div>
+</div>
+<br/><button class="smallbutton" onclick="cancelUpgrade()" ontouchend="cancelUpgrade()">Cancel Upgrade</button><br/>
+
+<script>
+	window.addEventListener('beforeunload', function (e) {
+		if (upgradeProgress > 0) {//upload in progress
+			if (confirm("abort upgrade?")) {
+				// Cancel the event
+				e.preventDefault();
+				// Chrome requires returnValue to be set
+				e.returnValue = '';
+			}
+		}
+	});
+</script>
