@@ -1,7 +1,7 @@
 <?include "global.tbh"?>
 <!DOCTYPE html>
 	<html lang="en">
-	<head></br>
+	<head>
 		<title>Firmware Uploader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,31 +13,31 @@
 	<body>
 		<div id="indexpage">
 		<div align="center">
-				</br><a href="http://tibbo.com/"><img src="tibbo.svg" alt="Tibbo Technology" class="logo" width="155" height="80"/></a>
+				<a href="http://tibbo.com/"><img src="tibbo.svg" alt="Tibbo Technology" class="logo" width="155" height="80"/></a>
 				<div id="demo" align="center">
 					<div class="container">
-						</br><h1>Firmware Uploader</h1></br>
-						<h2>Choose Method to Upload Firmware</h2></br></br>
+						<br/><h1>Firmware Uploader</h1><br/>
+						<h2>Choose Method to Upload Firmware</h2><br/><br/>
 						<div class="row">
 							<div class="col-xs-12 col-md-4">
-								<button class="button" onclick="processClick(1)" ontouchend="processClick(1)" style="width:80%";>Webpage</button>
+								<button class="button" onclick="processClick(1)" ontouchend="processClick(1)" style="width:80%">Webpage</button>
 							</div>
 							<div class="col-xs-12 col-md-4">
-								<button class="button" onclick="processClick(2)" ontouchend="processClick(2)" style="width:80%";>Serial</button>
+								<button class="button" onclick="processClick(2)" ontouchend="processClick(2)" style="width:80%">Serial</button>
 							</div>
 							<div class="col-xs-12 col-md-4">
-								<button class="button" onclick="processClick(3)" ontouchend="processClick(3)" style="width:80%";>Wi-Fi</button>
+								<button class="button" onclick="processClick(3)" ontouchend="processClick(3)" style="width:80%">Wi-Fi</button>
 							</div>		
 							<div class="col-xs-12 col-md-4">
-								<button class="button" onclick="processClick(4)" ontouchend="processClick(4)" style="width:80%";>Bluetooth</button>
+								<button class="button" onclick="processClick(4)" ontouchend="processClick(4)" style="width:80%">Bluetooth</button>
 							</div>
 							<div class="col-xs-12 col-md-4">
-								<button class="button" onclick="processClick(5)" ontouchend="processClick(5)" style="width:80%";>Ethernet</button>
+								<button class="button" onclick="processClick(5)" ontouchend="processClick(5)" style="width:80%">Ethernet</button>
 							</div>		
 						</div>
 					</div>
 				</div>
-			<h3></br>
+			<h3><br/>
 			Module Type: <b>
 			<?	dim moduletype as string 
 				if wln.enabled=NO then

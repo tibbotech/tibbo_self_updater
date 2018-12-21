@@ -95,7 +95,7 @@ sub init_serial(port as byte, baud as dword)
 	ser.parity=PL_SER_PR_NONE
 	ser.bits=PL_SER_BB_8
 	ser.txbuffrq(4)
-	ser.rxbuffrq(4)
+	ser.rxbuffrq(sys.freebuffpages-1)
 	sys.buffalloc()
 	ser.rxclear()
 	ser.txclear()

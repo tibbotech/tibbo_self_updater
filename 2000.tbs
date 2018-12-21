@@ -10,10 +10,10 @@ sub device_firmware_download_init_ble()
 	
 	bt.rxclear()
 	bt.txclear()	
-	s=DEVICE_NAME+right(hex_mac(bt.mac),5)
+	s=DEVICE_NAME+ " (M) " + right(hex_mac(bt.mac),5)
 	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
 	bt.name = s
-	bt.rxbuffrq(64)	 'Change this 64 to a define
+	bt.rxbuffrq(sys.freebuffpages-1)	 'Change this 64 to a define
 	sys.buffalloc
 	if bt.enabled<>YES then
 		bt.enable
