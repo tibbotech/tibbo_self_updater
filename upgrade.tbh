@@ -1,6 +1,6 @@
 #define MAX_NUM_FILE_UPG 3
 #define FW_UPG_BLK_LEN 128
-#define DEVICE_NAME "TPP3(G2)"
+#define DEVICE_NAME "TPP3WG2"
 #define DISK_SIZE 4096
 
 declare num_of_files as byte

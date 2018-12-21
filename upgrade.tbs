@@ -31,29 +31,24 @@ sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 end sub
 
 function hex_mac(mac as string) as string
-
-	dim startp as byte
-	dim prevstartp as byte = 0
-	dim f as byte
-	dim s as string
+	dim i as integer = 0
+	dim startpos as integer = 1
+	dim endpos as integer = 0
+	dim num as word = ""
+	dim result as string = ""
 	
-	for f=1 to 6
-		prevstartp=startp
-		startp=instr(1,mac,".",f)
-		s=left(mac,startp-1)
-		s=right(s,startp-prevstartp-1)
-		s=hex(s)
-		if len(s)=3 then
-			s=right(s,1)
-			s="0"+s
+	for i = 0 to 5
+		endpos = instr(startpos,mac,".",0)
+		num = val(  mid(mac,startpos,  endpos-startpos) )
+		if num<>0 then
+			result = result + right(hex( num ),2) + ":"
 		else
-			s=right(s,2)
+			result = result + "00" + ":"
 		end if
-		s=s+":"
-		hex_mac=hex_mac+s+":"
-	next f
-	
-	hex_mac=left(hex_mac,len(hex_mac)-1)
+		startpos=endpos+1
+	next i
+
+	hex_mac = left(result,len(result)-1)
 
 end function
 
@@ -95,7 +90,7 @@ sub init_serial(port as byte, baud as dword)
 	ser.parity=PL_SER_PR_NONE
 	ser.bits=PL_SER_BB_8
 	ser.txbuffrq(4)
-	ser.rxbuffrq(sys.freebuffpages-1)
+	ser.rxbuffrq(sys.freebuffpages-4)
 	sys.buffalloc()
 	ser.rxclear()
 	ser.txclear()
@@ -117,7 +112,7 @@ sub init_receive_socket(receive_interface as string)
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.allowedinterfaces="WLN,NET"
 	sock.localportlist="1000"
-	sock.rxbuffrq(sys.freebuffpages-1)
+	sock.rxbuffrq(sys.freebuffpages-4)
 	sock.txbuffrq(1) 
 	sys.buffalloc
 	

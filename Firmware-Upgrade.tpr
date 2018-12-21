@@ -1,6 +1,6 @@
 [project]
 version=1
-platform=TPP2W(G2)
+platform=TPP3W(G2)
 src_lib_ver=2_01_02
 name=Firmware-Upgrade
 output=Firmware-Upgrade.tpc
@@ -26,7 +26,7 @@ address=0.36.119.85.251.40
 [address5]
 platform=TPP3W(G2)
 transport=udp_broadcast
-address=0.36.119.82.149.40
+address=0.1.2.3.4.231
 [file1]
 path=sock\trunk\sock.tbh
 type=header
@@ -81,7 +81,7 @@ path=dhcp\trunk\dhcp.tbs
 type=basic
 format=
 condition=
-locked=yes
+locked=no
 location=commonlib
 [file9]
 path=dns\trunk\dns.tbh
