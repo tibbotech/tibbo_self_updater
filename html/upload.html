@@ -22,14 +22,12 @@ baud = right(baud,len(baud)-6)
 
 select case method
 	case "web":
+		download_url.firmware_url=value
 		start_dns(value)
-		if http_req_state.state<>dns_acquired then
-			doevents
-		end if
+		send_request(PL_SOCK_INTERFACE_NET)
 		init_web_receive_socket()
 		device_firmware_upload_async(PL_FW_UPG_WEB, 0)
 		upload_started=true
-		download_url.firmware_url=value
 	case "wifi":
 		init_receive_socket(method)
 		device_firmware_upload_async(PL_FW_UPG_SOCK, 0)

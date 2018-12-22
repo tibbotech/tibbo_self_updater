@@ -4,17 +4,12 @@ dim wln_dhcp_fail_ctr as byte
 
 
 sub init()
-'	dim ss as string = "https://github.com/jimmytibbo/TCU/blob/master/TPP3W(G2)-tios-3.77.14.tcu?raw=true"
-'	dim request as string="GET " + get_path(ss) + " HTTP/1.1\x0d\x0aHost: " + get_domain_name(ss) + "\x0d\x0a\x0d\x0a"
-'http://s000.tinyupload.com/?file_id=05512556897474928168
-
 	stg_start()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
 	'connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
 	init_sockets()
 	DHCP_DNS_init()
-
 end sub
 
 
@@ -136,7 +131,6 @@ sub on_sys_timer()
 	wln_proc_timer()
 	dhcp_proc_timer()
 	dns_proc_timer()
-	send_request(PL_SOCK_INTERFACE_NET)
 	
 end sub
 

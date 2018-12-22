@@ -74,6 +74,8 @@ declare sub send_request(interface as pl_sock_interfaces)
 
 declare function get_path(url as string) as string
 declare function get_domain_name(url as string) as string
+declare function get_port(url as string) as word
+declare function is_ip_address(domain_name as string) as boolean
 
 const DHCP_FAIL_LIMIT=1 'max number of DHCP retry "batches"
 const ALT_NET_IP="192.168.1.40"

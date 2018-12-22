@@ -4,6 +4,7 @@ public dim dns_socket, request_socket, upgrade_socket as byte
 dim dns_started as boolean=false
 dim s as string
 dim http_req_state as current_http_req_state
+dim target_port as word
 
 
 'Initializes sockets for DNS and Requests.
@@ -24,9 +25,18 @@ end sub
 sub start_dns(url as string)
 
 	sock.num=dns_socket
-	get_path(url)
-'	dns_query("www." + get_domain_name(url))	
-	dns_query(get_domain_name(url))	
+	
+	dim path as string=get_path(url)
+	dim domain as string=get_domain_name(url)
+	target_port=get_port(url)
+	if is_ip_address(domain)<>true then
+		dns_query(domain)
+	else
+		sock.num=socket_number.http_socket
+		sock.targetport=target_port
+		sock.targetip=domain
+		http_req_state.state=dns_acquired
+	end if
 
 end sub
 
@@ -45,6 +55,10 @@ function get_domain_name(url as string) as string
 	if b>0 then
 		get_domain_name=left(get_domain_name,b-1)
 	end if
+	b=instr(1,get_domain_name,":",1)
+	if b>0 then
+		get_domain_name=left(get_domain_name,b-1)
+	end if
 end function
 
 
@@ -56,10 +70,48 @@ function get_path(url as string) as string
 	end if
 	dim b as byte=instr(1,url,"/",start_index)
 	get_path=right(url,len(url)-b+1)
-	
-
 end function
 
+function get_port(url as string) as word
+	dim port_str as string="80"
+	dim start_index as byte = 1
+	if instr(1,url,"://",0)>0 then
+		start_index=2
+	end if
+	dim b as byte=instr(1,url,":",start_index)
+	if b>0 then
+		port_str=right(url,len(url)-b)
+		dim path as string=get_path(url)
+		dim c as byte=instr(1,port_str,path,1)
+		port_str=left(port_str,c-1)
+	end if
+	get_port=lval(port_str)
+end function
+
+function is_ip_address(domain_name as string) as boolean
+	dim has_next as boolean=true
+	dim index_result as byte=0
+	dim current_str as string=domain_name
+	dim remaining_str as string=domain_name
+	dim new_str as string
+	dim new_val as word
+	is_ip_address=true
+	while has_next
+		index_result=instr(1,remaining_str,".",1)
+		if index_result=0 then
+			index_result=len(remaining_str)+1
+			has_next=false
+		end if
+		current_str=left(remaining_str,index_result-1)
+		remaining_str=right(remaining_str,len(remaining_str)-index_result)
+		new_val=val(current_str)
+		new_str=str(new_val)
+		if new_str<>current_str then
+			is_ip_address=false
+			exit function
+		end if
+	wend
+end function
 
 sub callback_dns_answer_acquired(return_type as en_dns_return_type, byref return_string as string)
 
@@ -68,7 +120,7 @@ sub callback_dns_answer_acquired(return_type as en_dns_return_type, byref return
 		target_ip = ddstr(return_string)
 		sock.num=socket_number.http_socket
 		sock.targetip=target_ip
-		sock.targetport=80
+		sock.targetport=target_port
 	end if
 
 end sub
@@ -82,10 +134,13 @@ end sub
 
 
 sub send_request(interface as pl_sock_interfaces) 
-
+	
 	if download_url.firmware_url="" then
 		exit sub
 	end if
+	while http_req_state.state<>dns_acquired
+		doevents
+	wend
 	dim request as string="GET " + get_path(download_url.firmware_url) + " HTTP/1.1\x0d\x0aHost: " + get_domain_name(download_url.firmware_url) + "\x0d\x0a\x0d\x0a"
 	sock.num=socket_number.http_socket
 	sock.targetinterface=interface
@@ -129,7 +184,7 @@ sub on_sock_data_arrival()
 	#if GA1000 
 		wln_proc_data()
 	#endif
-	sys.debugprint(sock.peekdata(sock.rxlen)+"\r\n")
+'	sys.debugprint(sock.peekdata(sock.rxlen)+"\r\n")
 	dhcp_proc_data()
 	dns_proc_data()
 	remove_http_headers()
