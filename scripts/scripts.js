@@ -15,15 +15,13 @@ function processClick(uploadMethod) {
 	var method = "";
 	var value = "";
 	var baud = 0;
-	xhttp.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("demo").innerHTML = this.responseText;
-			if (method != "web") {
-				downloadUpgrades();
-			}
-		}
-	};
+	
 	if (uploadMethod == 1) {
+		xhttp.onreadystatechange = function () {
+			if (this.readyState == 4 && this.status == 200) {
+				document.getElementById("demo").innerHTML = this.responseText;
+			}
+		};
 		xhttp.open("GET", "processweb.html", true);
 		xhttp.send();
 		return;
@@ -40,6 +38,12 @@ function processClick(uploadMethod) {
 		// xhttp.open("GET", "processethernet.html", true);
 		method="ethernet";
 	}
+	xhttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("demo").innerHTML = this.responseText;
+			downloadUpgrades();
+		}
+	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 };
@@ -70,8 +74,10 @@ function loadDoc() {
 
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200)
+		if (this.readyState == 4 && this.status == 200){
+			document.getElementById("demo").innerHTML = this.responseText;
 			downloadUpgrades();
+		}
 	};
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();

@@ -25,28 +25,38 @@ sub start_dns(url as string)
 
 	sock.num=dns_socket
 	get_path(url)
-	dns_query("www." + get_domain_name(url))	
+'	dns_query("www." + get_domain_name(url))	
+	dns_query(get_domain_name(url))	
 
 end sub
 
 
 'Returns the domain name section of a given URL
 function get_domain_name(url as string) as string
-
-	if left(url, 4) = "www." then
-		get_domain_name=right(url,len(url)-4)
+	dim b as byte
+	if instr(1,url,"://",0)>0 then
+		b=instr(1,url,"/",2)
+		
+		get_domain_name=right(url,len(url)-b)
+	else
+		get_domain_name=url
 	end if
-	dim b as byte=instr(1,get_domain_name,".com",1)
-	get_domain_name=left(get_domain_name,b+3)
-
+	b=instr(1,get_domain_name,"/",1)
+	if b>0 then
+		get_domain_name=left(get_domain_name,b-1)
+	end if
 end function
 
 
 'Returns the path section of a given URL
 function get_path(url as string) as string
-
-	dim b as byte=instr(1,url,".com",1)
-	get_path=right(url,len(url)-b-3)
+	dim start_index as byte = 3
+	if instr(1,url,"://",0)=0 then
+		start_index=1
+	end if
+	dim b as byte=instr(1,url,"/",start_index)
+	get_path=right(url,len(url)-b+1)
+	
 
 end function
 
@@ -119,14 +129,13 @@ sub on_sock_data_arrival()
 	#if GA1000 
 		wln_proc_data()
 	#endif
+	sys.debugprint(sock.peekdata(sock.rxlen)+"\r\n")
 	dhcp_proc_data()
 	dns_proc_data()
 	remove_http_headers()
 	if sock.num=socket_number.http_socket or sock.num=socket_number.upgrade_socket then
 		device_firmware_upload_update()
 	end if
-	
-
 	
 end sub
 

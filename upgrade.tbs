@@ -90,7 +90,7 @@ sub init_serial(port as byte, baud as dword)
 	ser.parity=PL_SER_PR_NONE
 	ser.bits=PL_SER_BB_8
 	ser.txbuffrq(4)
-	ser.rxbuffrq(sys.freebuffpages-4)
+	ser.rxbuffrq(sys.freebuffpages-5)
 	sys.buffalloc()
 	ser.rxclear()
 	ser.txclear()
@@ -112,8 +112,8 @@ sub init_receive_socket(receive_interface as string)
 	sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
 	sock.allowedinterfaces="WLN,NET"
 	sock.localportlist="1000"
-	sock.rxbuffrq(sys.freebuffpages-4)
-	sock.txbuffrq(1) 
+	sock.rxbuffrq(sys.freebuffpages-5)
+	sock.txbuffrq(1)
 	sys.buffalloc
 	
 	sock.num=prevsock

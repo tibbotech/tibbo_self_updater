@@ -20,9 +20,6 @@ b=instr(1,s," HTTP/1.1",1)
 baud = sock.gethttprqstring(b-1)
 baud = right(baud,len(baud)-6)
 
-baud=115200
-value=0
-
 select case method
 	case "web":
 		start_dns(value)
@@ -68,6 +65,8 @@ select case method
 <?end if?>
 		<?
 	case "ser":
+		baud=115200
+		value=1
 		init_serial(value, baud)
 		value=val(value)-1
 		device_firmware_upload_async(PL_FW_UPG_SER, value)
