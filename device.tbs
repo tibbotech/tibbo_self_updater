@@ -6,7 +6,7 @@ dim wln_dhcp_fail_ctr as byte
 sub init()
 	stg_start()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
-	'connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
+	connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
 	dhcp_start(PL_SOCK_INTERFACE_NET,"","")
 	init_sockets()
 	DHCP_DNS_init()
