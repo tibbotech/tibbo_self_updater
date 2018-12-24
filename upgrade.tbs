@@ -5,6 +5,10 @@ dim upload_started as boolean = false
 dim current_fw_upg_state as pl_upg_state_t
 dim isBtConnected as boolean = false
 dim fw_buffer as string(128)=""
+dim pattern_timer as dword = sys.timercount32
+dim led_detect_timer as byte
+
+
 sub device_firmware_init(source as PL_FW_UPG_SOURCE, number as byte)
 	dim i as integer 
  
@@ -256,9 +260,10 @@ sub device_firmware_read_manifest(manifest as string)
 end sub
 
 
-
 function device_firmware_upload_update() as no_yes
-
+	
+	pat.play(PAT_GREEN_ON,PL_PAT_CANINT)
+	led_upgrade_pattern()
 	device_firmware_upload_update = YES
 	select case current_fw_upg_state.state
 		case PL_FW_UPG__INIT:
@@ -283,10 +288,36 @@ function device_firmware_upload_update() as no_yes
 	
 end function
 
+sub led_upgrade_pattern()
+
+	if sys.timercount32-pattern_timer>=1 then
+		if led_detect_timer<4 then
+			led_detect_timer=led_detect_timer+1
+		else
+			led_detect_timer=0
+		end if
+		pattern_timer = sys.timercount32
+	end if
+	
+	select case led_detect_timer
+	case 0:
+		set_LED(&b00001)
+	case 1:
+		set_LED(&b00010)
+	case 2:
+		set_LED(&b00100)
+	case 3:
+		set_LED(&b01000)
+	case 4:
+		set_LED(&b10000)
+	end select	
+
+end sub
+
 public function device_firmware_upload_async(source as PL_FW_UPG_SOURCE, number as byte) as no_yes	
 	
 	device_firmware_init(source, number) 'Move parameters below into firmware init
-	device_firmware_upload_async=device_firmware_upload_update()
+ 	device_firmware_upload_async=device_firmware_upload_update()
 
 end function
 

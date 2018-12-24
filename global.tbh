@@ -70,6 +70,9 @@ declare sub update_device(region as pl_wln_upgrade_regions, length as dword, che
 declare sub upgrade_delay(filesize as dword, region as pl_wln_upgrade_regions)
 declare sub start_dns(domainName as string)
 declare sub send_request(interface as pl_sock_interfaces)
+declare sub init_LEDS()
+declare sub set_LED(pattern as byte)
+declare sub led_upgrade_pattern()
 
 
 declare function get_path(url as string) as string
@@ -114,3 +117,10 @@ declare socket_number as socket_assignment
 declare current_upgrade_install_state as upgrade_install_state
 declare http_req_state as current_http_req_state
 declare download_url as url
+
+const PAT_ONE_SHORT_GREEN=			"---------------G~"
+const PAT_TWO_SHORT_GREEN=			"-------------G-G~"
+const PAT_THREE_SHORT_GREEN=		"-----------G-G-G"
+const PAT_THREE_SHORT_BOTH=			"--B-B-B--"
+const PAT_GREEN_ON=					"G~"
+const PAT_LONG_RED=					"RRRRRRRR-~"

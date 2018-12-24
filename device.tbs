@@ -4,6 +4,7 @@ dim wln_dhcp_fail_ctr as byte
 
 
 sub init()
+	init_LEDS()
 	stg_start()
 	stg_restore_multiple(EN_STG_INIT_MODE_OVERRIDE)
 	connect_to_ap("Tibbo9F",WLN_SECURITY_MODE_WPA2,"16836836",PL_WLN_DOMAIN_FCC)
@@ -12,6 +13,43 @@ sub init()
 	DHCP_DNS_init()
 end sub
 
+sub init_LEDS()
+	
+	beep.divider=0
+	io.num=46
+	io.enabled=YES
+	io.num=47
+	io.enabled=YES
+	io.num=48
+	io.enabled=YES
+	set_LED(&b00000)
+	beep.divider=21600
+	beep.play("BB",PL_BEEP_CANINT)
+	pat.play(PAT_THREE_SHORT_BOTH,PL_PAT_CANINT)
+	sys.timercountms=0
+	while sys.timercountms<2000
+	wend
+	pat.play(PAT_ONE_SHORT_GREEN,PL_PAT_CANINT)
+end sub
+
+sub set_LED(pattern as byte)
+
+	dim f,x as byte
+	dim s as string(8)
+	
+	s=mid(bin(pattern),3,8)
+	s=strgen(8-len(s),"0")+s	
+	
+	'make 5 clocks
+	io.num=PL_IO_NUM_47
+	for f=0 to 4
+		x=1-val(mid(s,f+4,1))
+		io.lineset(PL_IO_NUM_48,x)
+		io.state=LOW
+		io.state=HIGH
+	next f
+	
+end sub
 
 
 sub init_sockets()
@@ -104,6 +142,7 @@ sub callback_dhcp_ok(renew as no_yes, interface as pl_sock_interfaces, byref ip 
 		end if
 		dns_connect(PL_SOCK_INTERFACE_WLN, "8.8.4.4", 0)
 	end if
+	pat.play(PAT_TWO_SHORT_GREEN,PL_PAT_CANINT)
 				
 end sub
 sub callback_dhcp_failure(interface as pl_sock_interfaces,failure_code as en_dhcp_status_codes)
@@ -118,6 +157,7 @@ sub callback_dhcp_failure(interface as pl_sock_interfaces,failure_code as en_dhc
 			wln_dhcp_fail_ctr=wln_dhcp_fail_ctr+1
 		end if
 	end if
+	pat.play(PAT_LONG_RED,PL_PAT_CANINT)
 	
 end sub
 
