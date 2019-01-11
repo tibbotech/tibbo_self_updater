@@ -4,7 +4,7 @@ platform=TPP3W(G2)
 src_lib_ver=2_01_02
 name=tibbo_self_updater
 output=tibbo_self_updater.tpc
-debug=off
+debug=on
 defines= /dLCD_TYPE=SOLOMON_SSD1963 /dWLN_WPA=1 /dOBJECT_LCD=LCD_ENABLED /dWLN_AVAILABLE=1 /dOBJECT_FD=FD_ENABLED /dNET_AVAILABLE=1 /dOBJECT_KP=KP_ENABLED /dOBJECT_WLN=WLN_ENABLED
 transport=udp_broadcast
 [address1]

@@ -77,12 +77,13 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	end if
 	
 	sys.debugprint("All files have been downloaded.\r\n")
-	pat.play("B~", PL_PAT_NOINT)
 
 	upg_state=get_fw_upg_state()
 	if upg_state.state <> PL_FW_UPG_COMPLETE then
 		exit sub
 	end if
+	
+	pat.play("B~", PL_PAT_CANINT)
 	
 	i = get_firmware_index(WA2000_MON)
 	if i >= 0 then
