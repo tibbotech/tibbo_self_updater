@@ -126,29 +126,29 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	
 end sub
 
-sub upgrade_WA2000_firmware(region as pl_wln_upgrade_regions,  index as byte)
-	
+sub upgrade_WA2000_firmware(fw_type as PL_UPG_FW_TYPE,  index as byte)
+	dim region as pl_wln_upgrade_regions
 	dim write_delay_secs as long
 	if wln.enabled =YES then  
 		wln.disable
-		if region=WA2000_MON then
-			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MONITOR)
-			wln.upgrade(PL_WLN_UPGRADE_REGION_MONITOR, upg_state.fw_lengths(index), upg_state.fw_checksums(index))
-		else if region=WA2000_APP then
-			wln.setupgraderegion(PL_WLN_UPGRADE_REGION_MAIN)
-			wln.upgrade(PL_WLN_UPGRADE_REGION_MAIN, upg_state.fw_lengths(index), upg_state.fw_checksums(index))
-		else
-			'region is incorrect
-			exit sub
-		end if
-		
-		'We can write 8 blocks per second at worse case. in reality we dont need a delay here at this stage + time to check the firmware integrity
-		write_delay_secs = (upg_state.fw_lengths(index)/4096 + 1)/8   + 1 + (upg_state.fw_lengths(index)/4096 + 1)/29 +1
-		sys.debugprint("Delay for write: " + lstri(write_delay_secs))
-		upgrade_delay(upg_state.fw_lengths(index), region)
-		if wln.waitforupgradecompletion()=NG then
-			sys.debugprint("Upgrading WA2000_MON Failed"+chr(&h0A)+chr(&h0D))
-			exit sub
-		end if
+	end if
+	if fw_type=WA2000_MON then
+		region = PL_WLN_UPGRADE_REGION_MONITOR
+	else if fw_type=WA2000_APP then
+		region=PL_WLN_UPGRADE_REGION_MAIN
+	else
+		'fw_type is incorrect
+		exit sub
+	end if
+	
+	wln.setupgraderegion(region)
+	wln.upgrade(region, upg_state.fw_lengths(index), upg_state.fw_checksums(index))
+	'We can write 8 blocks per second at worse case. in reality we dont need a delay here at this stage + time to check the firmware integrity
+	write_delay_secs = (upg_state.fw_lengths(index)/4096 + 1)/8   + 1 + (upg_state.fw_lengths(index)/4096 + 1)/29 +1
+	sys.debugprint("Delay for write: " + lstri(write_delay_secs))
+	upgrade_delay(upg_state.fw_lengths(index), region)
+	if wln.waitforupgradecompletion()=NG then
+		sys.debugprint("Upgrading WA2000_MON Failed"+chr(&h0A)+chr(&h0D))
+		exit sub
 	end if
 end sub
