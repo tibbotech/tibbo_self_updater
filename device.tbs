@@ -26,29 +26,8 @@ sub init_LEDS()
 	beep.divider=21600
 	beep.play("BB",PL_BEEP_CANINT)
 	pat.play(PAT_THREE_SHORT_BOTH,PL_PAT_CANINT)
-	sys.timercountms=0
-	while sys.timercountms<2000
-	wend
+	delay_ms(2000)
 	pat.play(PAT_ONE_SHORT_GREEN,PL_PAT_CANINT)
-end sub
-
-sub set_LED(pattern as byte)
-
-	dim f,x as byte
-	dim s as string(8)
-	
-	s=mid(bin(pattern),3,8)
-	s=strgen(8-len(s),"0")+s	
-	
-	'make 5 clocks
-	io.num=PL_IO_NUM_47
-	for f=0 to 4
-		x=1-val(mid(s,f+4,1))
-		io.lineset(PL_IO_NUM_48,x)
-		io.state=LOW
-		io.state=HIGH
-	next f
-	
 end sub
 
 

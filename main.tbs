@@ -6,7 +6,17 @@ dim upg_state as pl_upg_state_t
 
 sub on_sys_init()
 
-	init()
+
+dim test as string =  random(128)
+	dim b as byte(128)
+	
+	b = test
+	
+	
+	dim test2 as string =  random(128)
+	dim b2 as byte(128)
+	
+	b2 = test
 	
 end sub
 

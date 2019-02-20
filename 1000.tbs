@@ -1,45 +1,31 @@
 include "global.tbh"
 include "upgrade.tbh"
-
-dim pattern_timer as dword = sys.timercount32
+dim pattern_timer as dword = sys.timercount
 dim led_detect_timer as byte
 
+
 sub device_firmware_download_init_ble()
-	dim s as string
-	dim mac as string
-	dim b as byte
-	'IF GA10000 dont do this
-	'set the state to fai land set gail rteadon 
-	
-	bt.rxclear()
-	bt.txclear()	
-	s=DEVICE_NAME+ " (M) V2.24B " + right(hex_mac(bt.mac),5)
-	bt.emulation = PL_WLN_BT_EMULATION_MODE_MICROCHIP
-	bt.name = s
-	bt.rxbuffrq(sys.freebuffpages-5)	 'Change this 64 to a define
-	sys.buffalloc
-	if bt.enabled<>YES then
-		bt.enable
-	end if
+	 sys.halt
 end sub
 
 
 function device_firmware_read_32_uint() as dword
-	dim l as byte(4)
+	dim l as byte(255)
 	dim s as string
 	select case current_fw_upg_state.source
 		case PL_FW_UPG_BLE:		
 		
-			l=bt.getdata(4)
+			sys.halt
 									 
 	
 		case PL_FW_UPG_WEB:
 			sock.num=socket_number.http_socket		 
-			l=sock.getdata(4)
+			s=sock.getdata(4)
 			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 
 		case PL_FW_UPG_SOCK:
 			sock.num=socket_number.upgrade_socket
-			l=sock.getdata(4)
+			s=sock.getdata(4)
+			l=s
 			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 							 
 		case PL_FW_UPG_SER:
 			ser.num=current_fw_upg_state.source_num
@@ -61,7 +47,7 @@ function device_firmware_bytes_available() as dword
 			sock.num=socket_number.http_socket
 			device_firmware_bytes_available=sock.rxlen
 		case PL_FW_UPG_BLE:		   	
-			device_firmware_bytes_available = bt.rxlen							 
+			sys.halt						 
 		case PL_FW_UPG_SOCK:
 			sock.num=socket_number.upgrade_socket
 			device_firmware_bytes_available=sock.rxlen
@@ -82,7 +68,7 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 			sock.num=socket_number.http_socket
 			data = sock.getdata(count)	
 		case PL_FW_UPG_BLE:		
-			data = bt.getdata(count)							 
+			sys.halt						 
 		case PL_FW_UPG_SOCK:
 			sock.num=socket_number.upgrade_socket
 			data = sock.getdata(count)	
@@ -96,22 +82,7 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 end sub
 
 
-sub on_bt_event(bt_event as enum pl_bt_events)
 
-	select case bt_event
-	case PL_BT_EVENT_CONNECTED:
-		sys.debugprint("BT Connected\r\n")
-		bt.setdata("Hello World")
-		bt.send()
-	case PL_BT_EVENT_DISCONNECTED:
-		sys.debugprint("BT Disconnected\r\n")
-	case PL_BT_EVENT_ENABLED:
-		bt.advertise=true
-	case PL_BT_EVENT_DISABLED:
-		sys.debugprint("BT Power Off\r\n")
-	end select
-	
-end sub
 
 sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 	dim fw as string
@@ -185,7 +156,6 @@ sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 	end if		
 end sub
 
-
 sub set_LED(pattern as byte)
 
 	dim f,x as byte
@@ -195,13 +165,13 @@ sub set_LED(pattern as byte)
 	s=strgen(8-len(s),"0")+s	
 	
 	'make 5 clocks
-	io.num=PL_IO_NUM_47
-	for f=0 to 4
-		x=1-val(mid(s,f+4,1))
-		io.lineset(PL_IO_NUM_48,x)
-		io.state=LOW
-		io.state=HIGH
-	next f
+'	io.num=PL_IO_NUM_47
+'	for f=0 to 4
+'		x=1-val(mid(s,f+4,1))
+'		io.lineset(PL_IO_NUM_48,x)
+'		io.state=LOW
+'		io.state=HIGH
+'	next f
 	
 end sub
 
@@ -209,13 +179,13 @@ end sub
 
 sub led_upgrade_pattern()
 
-	if sys.timercount32-pattern_timer>=1 then
+	if sys.timercount-pattern_timer>=1 then
 		if led_detect_timer<4 then
 			led_detect_timer=led_detect_timer+1
 		else
 			led_detect_timer=0
 		end if
-		pattern_timer = sys.timercount32
+		pattern_timer = sys.timercount
 	end if
 	
 	select case led_detect_timer
