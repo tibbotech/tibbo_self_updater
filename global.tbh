@@ -4,7 +4,8 @@
 #define WLN_WPA 1 
 #define WLN_ENABLED 1 
 #define GA1000 0
-
+'#define FD_SECTOR_SIZE 256
+#define FD_SECTOR_SIZE 512
 
 'Wi-Fi setup
 

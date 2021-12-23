@@ -104,7 +104,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	
 	i =  get_firmware_index(UNCOMPRESSED_TIOS_APP)  
 	if i >= 0  then 
-	   fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/256+1)
+	   fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/FD_SECTOR_SIZE+1)
 	end if
 	
 	i=  get_firmware_index(COMPRESSED_TIOS_APP) 
@@ -114,7 +114,7 @@ sub on_firmware_update_complete(byref current_fw_upg_state as pl_upg_state_t)
 	
 	i =  get_firmware_index(UNCOMPRESSED_TIOS)  
 	if i >= 0  then 
-		fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/256+1)
+		fd.copyfirmware(current_fw_upg_state.fw_lengths(i)/FD_SECTOR_SIZE+1)
 	end if
 	
 	i =  get_firmware_index(TIOS_MON)  
