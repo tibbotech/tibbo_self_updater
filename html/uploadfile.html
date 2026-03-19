@@ -1,0 +1,45 @@
+
+
+<script>
+
+clearInterval(showProgressInterval);
+startInstallTimer();
+</script>
+
+<br><br><br>
+<h1><span id="title">Installing Updates...</span></h1>
+
+<h2><br>
+    <div id="statusupdate" style="display:none">
+        Number of Files: <span id="files">0</span><br>
+        Total Size: <span id="size">0</span> bytes<br><br><br>
+    </div>
+    <div id="percentupdate" style="display:none"><b><span id="percent">0</span>% Complete</b></div>
+</h2>
+<div class="progress" id="progressb" style="width:40%; display:none;">
+    <div id="progbar" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0"
+        aria-valuemax="100">
+    </div>
+</div>
+<br/>
+<button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>
+
+<?
+include "upgrade.tbh"
+include "global.tbh"
+dim prevsock as byte=sock.num
+
+'device_firmware_upload_async(PL_FW_UPG_WEB_FILE, 0)
+'upload_started=true
+
+
+
+if upload_started=true then
+	while sock.varlen>0
+		device_firmware_upload_update()
+		doevents
+	wend
+end if
+
+sock.num=prevsock
+?>

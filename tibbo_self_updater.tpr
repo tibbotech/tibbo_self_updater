@@ -1,32 +1,38 @@
 [project]
 version=1
-platform=TPP3W(G2)
-src_lib_ver=2_01_02
+platform=TPP2W(G2)
+src_lib_ver=2_01_05
 name=tibbo_self_updater
 output=tibbo_self_updater.tpc
-debug=on
-defines= /dLCD_TYPE=SOLOMON_SSD1963 /dWLN_WPA=1 /dOBJECT_LCD=LCD_ENABLED /dWLN_AVAILABLE=1 /dNET_AVAILABLE=1 /dOBJECT_FD=FD_ENABLED /dOBJECT_KP=KP_ENABLED /dOBJECT_WLN=WLN_ENABLED
+debug=off
+defines="/dLCD_TYPE=SOLOMON_SSD1963 /dWLN_WPA=1 /dOBJECT_LCD=LCD_ENABLED /dWLN_AVAILABLE=1 /dNET_AVAILABLE=1 /dOBJECT_FD=FD_ENABLED /dOBJECT_KP=KP_ENABLED /dOBJECT_WLN=WLN_ENABLED"
 transport=udp_broadcast
+
 [address1]
 platform=SIMULATOR
 transport=udp_broadcast
 address=0.36.119.81.166.51
+
 [address2]
 platform=TPP2W
 transport=udp_broadcast
 address=0.36.119.82.169.188
+
 [address3]
 platform=TPP2W(G2)
 transport=udp_broadcast
-address=0.1.2.3.4.32
+address=undefined
+
 [address4]
 platform=SPACE_AGE
 transport=udp_broadcast
 address=0.36.119.85.251.40
+
 [address5]
 platform=TPP3W(G2)
 transport=udp_broadcast
-address=0.1.2.3.4.231
+address=0.36.119.82.252.201
+
 [file1]
 path=sock\trunk\sock.tbh
 type=header
@@ -34,6 +40,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file2]
 path=sock\trunk\sock.tbs
 type=basic
@@ -41,6 +48,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file3]
 path=wln\trunk\wln.tbh
 type=header
@@ -48,6 +56,7 @@ format=
 condition=
 locked=no
 location=commonlib
+
 [file4]
 path=wln\trunk\wln.tbs
 type=basic
@@ -55,6 +64,7 @@ format=
 condition=
 locked=no
 location=commonlib
+
 [file5]
 path=settings\trunk\settings.tbh
 type=header
@@ -62,6 +72,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file6]
 path=settings\trunk\settings.tbs
 type=basic
@@ -69,6 +80,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file7]
 path=dhcp\trunk\dhcp.tbh
 type=header
@@ -76,6 +88,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file8]
 path=dhcp\trunk\dhcp.tbs
 type=basic
@@ -83,6 +96,7 @@ format=
 condition=
 locked=no
 location=commonlib
+
 [file9]
 path=dns\trunk\dns.tbh
 type=header
@@ -90,6 +104,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file10]
 path=dns\trunk\dns.tbs
 type=basic
@@ -97,6 +112,7 @@ format=
 condition=
 locked=yes
 location=commonlib
+
 [file11]
 path=scripts\bootstrap.min.js
 type=text
@@ -104,6 +120,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file12]
 path=scripts\scripts.js
 type=text
@@ -111,6 +128,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file13]
 path=images\tibbo.svg
 type=binary
@@ -118,6 +136,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file14]
 path=css\bootstrap.min.css
 type=text
@@ -125,6 +144,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file15]
 path=css\style.css
 type=text
@@ -132,6 +152,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file16]
 path=html\index.html
 type=html
@@ -139,6 +160,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file17]
 path=html\processbluetooth.html
 type=html
@@ -146,6 +168,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file18]
 path=html\processethernet.html
 type=html
@@ -153,6 +176,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file19]
 path=html\processserial.html
 type=html
@@ -160,6 +184,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file20]
 path=html\processweb.html
 type=html
@@ -167,6 +192,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file21]
 path=html\processwifi.html
 type=html
@@ -174,6 +200,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file22]
 path=html\upload.html
 type=html
@@ -181,6 +208,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file23]
 path=images\favicon.ico
 type=binary
@@ -188,6 +216,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file24]
 path=images\spacer.gif
 type=binary
@@ -195,6 +224,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file25]
 path=html\upgradecancelled.html
 type=html
@@ -202,6 +232,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file26]
 path=html\showprogress.html
 type=html
@@ -209,6 +240,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file27]
 path=html\downloadupgrades.html
 type=html
@@ -216,6 +248,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file28]
 path=html\installupgrades.html
 type=html
@@ -223,6 +256,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file29]
 path=html\upgradecomplete.html
 type=html
@@ -230,6 +264,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file30]
 path=html\rebootsystem.html
 type=html
@@ -237,6 +272,7 @@ format=65001
 condition=
 locked=no
 location=project
+
 [file31]
 path=global.tbh
 type=header
@@ -244,6 +280,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file32]
 path=upgrade.tbh
 type=header
@@ -251,6 +288,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file33]
 path=device.tbs
 type=basic
@@ -258,6 +296,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file34]
 path=dns_request.tbs
 type=basic
@@ -265,6 +304,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file35]
 path=main.tbs
 type=basic
@@ -272,6 +312,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file36]
 path=upgrade.tbs
 type=basic
@@ -279,6 +320,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file37]
 path=resources\ga1000fw.bin
 type=binary
@@ -286,6 +328,7 @@ format=
 condition=
 locked=no
 location=project
+
 [file38]
 path=resources\settings.xtxt
 type=xtext
@@ -293,9 +336,26 @@ format=STG_lib_configurator
 condition=
 locked=no
 location=project
+
 [file39]
 path=2000.tbs
 type=basic
+format=65001
+condition=
+locked=no
+location=project
+
+[file40]
+path=html\uploadfile.html
+type=html
+format=65001
+condition=
+locked=no
+location=project
+
+[file41]
+path=html\processwebupload.html
+type=html
 format=65001
 condition=
 locked=no

@@ -1,0 +1,28 @@
+<br />
+<h1>Upload Through Webpage</h1><br />
+<h2>
+	<ol class="center">
+		<li>Select the .TCU firmware file.</li>
+		<li>Press Upload to proceed.</li>
+	</ol><br />
+
+	<input class="textbox" type="file"
+		id="file"><br /><br />
+</h2>
+
+</h2><br /><button class="smallbutton" id="web" onclick="loadDoc()" ontouchend="loadDoc()">Upload</button><br />
+<button class="smallbutton" onclick="loadIndex()" ontouchend="loadIndex()">Main Menu</button>
+
+
+<h2><br>
+    <div id="statusupdate" style="display:none">
+        Number of Files: <span id="files">0</span><br>
+        Total Size: <span id="size">0</span> bytes<br><br><br>
+    </div>
+    <div id="percentupdate" style="display:none"><b><span id="percent">0</span>% Complete</b></div>
+</h2>
+<div class="progress" id="progressb" style="width:40%; display:none;">
+    <div id="progbar" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0"
+        aria-valuemax="100">
+    </div>
+</div>

@@ -37,6 +37,16 @@ function processClick(uploadMethod) {
 	} else if (uploadMethod == 5) {
 		// xhttp.open("GET", "processethernet.html", true);
 		method="ethernet";
+	} else if (uploadMethod == 6) {
+		xhttp.onreadystatechange = function () {
+			if (this.readyState == 4 && this.status == 200) {
+				document.getElementById("demo").innerHTML = this.responseText;
+			}
+		};
+		xhttp.open("GET", "processwebupload.html", true);
+		xhttp.send();
+		downloadUpgrades();
+		return;
 	}
 	xhttp.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
@@ -48,11 +58,18 @@ function processClick(uploadMethod) {
 	xhttp.send();
 };
 
-var method = "0"
+var method = "0";
 
 function loadDoc() {
 	var value = "0"
 	var baud = "0"
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			document.getElementById("demo").innerHTML = this.responseText;
+			downloadUpgrades();
+		}
+	};
 	if (document.getElementById("url")) {
 		method = "web";
 		value = document.getElementById("url").value;
@@ -70,15 +87,24 @@ function loadDoc() {
 		method = "ethernet";
 	} else if (document.getElementById("ble")) {
 		method = "ble";
+	} else if (document.getElementById("file")) {
+		method = "webupload";
+		value = document.getElementById("file").value;
+		//value needs to be the actual file data
+		var file = document.getElementById("file").files[0];
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			value = e.target.result;
+			xhttp.open("POST", "uploadfile.html", true);
+			// send as binary not base64
+			xhttp.setRequestHeader("Content-Transfer-Encoding", "binary");
+			xhttp.send(file);
+		};
+		reader.readAsDataURL(file);
+		return;
 	}
 
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200){
-			document.getElementById("demo").innerHTML = this.responseText;
-			downloadUpgrades();
-		}
-	};
+	
 	xhttp.open("GET", "upload.html?method=" + method + "&value=" + value + "&baud=" + baud, true);
 	xhttp.send();
 }
@@ -88,7 +114,7 @@ var upgradeProgress = 0;
 function downloadUpgrades() {
 
 	if (showProgressInterval == undefined) {
-		showProgressInterval = setInterval(showProgress, 1000);
+		showProgressInterval = setInterval(showProgress, 3000);
 		upgradeProgress = 0;
 
 		// var xhttp = new XMLHttpRequest();

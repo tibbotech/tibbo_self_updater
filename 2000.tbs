@@ -34,6 +34,9 @@ function device_firmware_read_32_uint() as dword
 			sock.num=socket_number.http_socket		 
 			l=sock.getdata(4)
 			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 
+		case PL_FW_UPG_WEB_FILE: 
+			l=sock.gethttprqstring(4)
+			device_firmware_read_32_uint =  l(0) + (l(1) shl 8) + (l(2) shl 16)  + (l(3) shl 24) 
 		case PL_FW_UPG_SOCK:
 			sock.num=socket_number.upgrade_socket
 			l=sock.getdata(4)
@@ -57,6 +60,8 @@ function device_firmware_bytes_available() as dword
 		case PL_FW_UPG_WEB:
 			sock.num=socket_number.http_socket
 			device_firmware_bytes_available=sock.rxlen
+		case PL_FW_UPG_WEB_FILE:
+			device_firmware_bytes_available=sock.varlen
 		case PL_FW_UPG_BLE:		   	
 			device_firmware_bytes_available = bt.rxlen							 
 		case PL_FW_UPG_SOCK:
@@ -78,6 +83,8 @@ sub device_firmware_read_data(byref data as string, byref count as dword)
 		case PL_FW_UPG_WEB:
 			sock.num=socket_number.http_socket
 			data = sock.getdata(count)	
+		case PL_FW_UPG_WEB_FILE:
+			data = sock.gethttprqstring(count)
 		case PL_FW_UPG_BLE:		
 			data = bt.getdata(count)							 
 		case PL_FW_UPG_SOCK:
@@ -173,7 +180,7 @@ sub device_firmware_get_fw_block(byref dev_fw_upg_state as pl_upg_state_t )
 		dev_fw_upg_state.fw_currentfile = dev_fw_upg_state.fw_currentfile + 1
 		if dev_fw_upg_state.fw_numfiles=0 then 
 			dev_fw_upg_state.state=PL_FW_UPG_COMPLETE
-			on_firmware_update_complete(dev_fw_upg_state)
+'			on_firmware_update_complete(dev_fw_upg_state)
 		else
 			dev_fw_upg_state.state=PL_FW_UPG_READ_FW_TYPE
 			dev_fw_upg_state.fw_percent=0

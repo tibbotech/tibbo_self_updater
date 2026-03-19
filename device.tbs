@@ -56,10 +56,11 @@ sub init_sockets()
 	
 	dim f as byte
 
-	for f=12 to 15
+	for f=14 to 15
 		sock.num=f
 		sock.txbuffrq(2)
-		sock.varbuffrq(2)
+		dim aa as word = sock.varbuffrq(100)
+'		sock.varbuffrq(2)
 		sock.redir(PL_REDIR_SOCK0 + sock.num)
 		sock.protocol=PL_SOCK_PROTOCOL_TCP
 		sock.inconmode=PL_SOCK_INCONMODE_ANY_IP_ANY_PORT
@@ -171,6 +172,10 @@ sub on_sys_timer()
 	wln_proc_timer()
 	dhcp_proc_timer()
 	dns_proc_timer()
+	
+	if upload_started=true AND current_fw_upg_state.state=PL_FW_UPG_COMPLETE then
+		on_firmware_update_complete(current_fw_upg_state)
+	end if
 	
 end sub
 
@@ -287,3 +292,14 @@ end sub
 
 sub callback_dns_buff_released()
 end sub
+
+ sub on_sock_postdata()
+	if upload_started=false then
+		current_fw_upg_state.state=PL_FW_UPG__INIT
+		device_firmware_upload_async(PL_FW_UPG_WEB_FILE, 0)
+		upload_started=true
+	end if
+	if upload_started=true then
+		device_firmware_upload_update()
+	end if
+ end sub
